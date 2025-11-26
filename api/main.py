@@ -1,21 +1,22 @@
 from http import HTTPStatus
 from http.client import HTTPException
 import logging
-from api.v1 import films
-from core.logger import LOGGING
+
+from src.api.v1 import films
+from src.core.logger import LOGGING
 from fastapi import APIRouter, Depends, FastAPI
 from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 
-from core import config
-from db import elastic
-from db import redis
+from src.core import config
+from src.db import elastic
+from src.db import redis
 from elasticsearch import AsyncElasticsearch
 from redis import Redis
 
 import uvicorn
 
-from services.film import FilmService, get_film_service
+from src.services.film import FilmService, get_film_service
 
 router = APIRouter()
 

@@ -1,0 +1,1 @@
+GENRES_STATE_KEY = "genres"
