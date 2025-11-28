@@ -1,48 +1,51 @@
-import abc
 from datetime import datetime
-import json
-from typing import Any, Dict
+
+import abc
+from typing import Any
+from redis import Redis
+from utils import backoff
+import settings
+from settings import settings
 
 
 class BaseStorage(abc.ABC):
     @abc.abstractmethod
-    def save_state(self, state: Dict[str, Any]) -> None: ...
+    def set_value(self, key: str, value: Any) -> None: ...
 
     @abc.abstractmethod
-    def retrieve_state(self) -> Dict[str, Any]: ...
+    def get_value(self, key: str) -> Any | None: ...
 
 
-class JsonFileStorage(BaseStorage):
+class RemoteStorage(BaseStorage):
     def __init__(self) -> None:
-        self.file_path = "./storage/storage.json"
+        self.redis = Redis(host=settings.redis_host, port=settings.redis_port)
 
-    def save_state(self, state: Dict[str, Any]) -> None:
-        with open(self.file_path, "w") as storage_file:
-            json.dump(state, storage_file, indent=2)
+    def set_value(self, key: str, value: Any) -> None:
+        self.redis.set(key, value)
 
-    def retrieve_state(self) -> Dict[str, Any]:
+    def get_value(self, key: str) -> str | None:
         try:
-            with open(self.file_path, "r") as storage_file:
-                return json.load(storage_file)
+            value = self.redis.get(key)
+
+            return value.decode()
+
         except:
-            return {}
+            return None
 
 
 class State:
     def __init__(self, storage: BaseStorage) -> None:
         self.storage = storage
 
-    def set_state(self, state_key: str, value: datetime) -> None:
-        state_dict = self.storage.retrieve_state()
-        state_dict[state_key] = str(value)
-        self.storage.save_state(state_dict)
+    @backoff(border_sleep_time=60)
+    def set_state(self, key: str, value: datetime) -> None:
+        self.storage.set_value(key, value.isoformat())
 
+    @backoff(border_sleep_time=60)
     def get_state(self, state_key: str) -> datetime:
-        # TODO: реализовать
-        state_dict = self.storage.retrieve_state()
-        raw = state_dict.get(state_key)
+        raw_date_time = self.storage.get_value(state_key)
 
-        if raw == None:
+        if raw_date_time == None:
             return datetime.min
 
-        return datetime.fromisoformat(raw)
+        return datetime.fromisoformat(raw_date_time)

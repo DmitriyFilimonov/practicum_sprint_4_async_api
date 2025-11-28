@@ -1,10 +1,6 @@
-import psycopg
 from utils import backoff
-from process.entities.models import FilmWork
 from process.entities.filmwork.etl import movies_etl
-from state.state import JsonFileStorage, State
-from psycopg.rows import class_row
-from settings import settings
+from state.state import RemoteStorage, State
 
 import logging
 
@@ -17,8 +13,7 @@ logging.basicConfig(
 @backoff(border_sleep_time=60)
 def start_etl():
 
-    storage = JsonFileStorage()
-    state = State(storage)
+    state = State(RemoteStorage())
 
     movies_etl(state=state)
 

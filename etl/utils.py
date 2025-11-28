@@ -3,6 +3,7 @@ from logging import error, warning
 from functools import wraps
 from time import sleep
 from typing import Generator
+import redis
 import requests
 
 import psycopg
@@ -23,6 +24,7 @@ RETRYABLE_ERRORS = (
     ConnectionError,
     requests.exceptions.ConnectionError,
     psycopg.OperationalError,
+    redis.ConnectionError
 )
 
 

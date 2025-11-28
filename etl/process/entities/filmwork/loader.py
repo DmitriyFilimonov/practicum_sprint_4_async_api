@@ -43,4 +43,4 @@ def load_movies(
             f"info: {state_key} актуализированы до {str(last_modified)}. Обновлений: {len(filworks)}"
         )
 
-        state.set_state(state_key=state_key, value=last_modified)
+        state.set_state(key=state_key, value=last_modified)

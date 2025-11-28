@@ -41,6 +41,12 @@ services:
     volumes:
       - etl_storage:/opt/app/storage
 
+  cache:
+    image: redis:5.0.4
+    volumes:
+      - cache:/usr/share/redis/data
+
 volumes:
   etl_storage:
   esdata:
+  cache:

@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     es_host: str
     es_port: str
 
+    redis_host: str
+    redis_port: str
+
     def get_dsl(self):
         return {
             "dbname": self.postgres_db,

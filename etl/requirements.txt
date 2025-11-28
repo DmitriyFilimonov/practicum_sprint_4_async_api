@@ -1,3 +1,4 @@
 psycopg[binary]==3.1.18
 requests
 pydantic_settings
+redis==5.0.4
