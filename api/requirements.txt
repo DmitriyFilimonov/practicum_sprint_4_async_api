@@ -4,3 +4,6 @@ redis==5.0.4
 logging
 uvicorn
 pydantic
+psycopg[binary]==3.1.18
+requests
+pydantic_settings

@@ -1,0 +1,52 @@
+version: '3'
+services:
+  api-service:
+    build: ./api
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./configs:/etc/nginx/conf.d:ro
+    depends_on:
+      - api-service
+    ports:
+      - "80:80"
+
+  db:
+    image: postgres:16
+    env_file:
+      - ./db/.env
+    volumes:
+      - ./db/database_dump.sql:/docker-entrypoint-initdb.d/init.sql
+
+  es:
+    image: elasticsearch:8.6.2
+    container_name: es
+    ports:
+      - 9200:9200
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
+  etl-process:
+    build: ./etl
+    env_file:
+      - ./etl/.env
+    depends_on:
+      - db
+      - es
+    volumes:
+      - etl_storage:/opt/app/storage
+
+  cache:
+    image: redis:5.0.4
+    volumes:
+      - cache:/usr/share/redis/data
+
+volumes:
+  etl_storage:
+  esdata:
+  cache:

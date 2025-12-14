@@ -1,0 +1,1 @@
+PERSONS_STATE_KEY = "persons"

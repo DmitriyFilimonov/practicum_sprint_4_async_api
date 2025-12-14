@@ -1,7 +1,7 @@
 import os
 from logging import config as logging_config
 
-from core.logger import LOGGING
+from src.core.logger import LOGGING
 
 
 # Применяем настройки логирования
@@ -9,6 +9,8 @@ logging_config.dictConfig(LOGGING)
 
 # Название проекта. Используется в Swagger-документации
 PROJECT_NAME = os.getenv("PROJECT_NAME", "movies")
+
+API_PORT = os.getenv("API_PORT")
 
 # Настройки Redis
 REDIS_HOST = os.getenv("REDIS_HOST", "127.0.0.1")
