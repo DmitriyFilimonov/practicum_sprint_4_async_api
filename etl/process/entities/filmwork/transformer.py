@@ -1,41 +1,57 @@
-from typing import Generator
+from datetime import datetime
+from typing import Callable, Generator
 
 from process.entities.models import (
     FilmWork,
     FilmWorkESDocPerson,
     FilmWorkESDocRaw,
-    FilworkPerson,
 )
 
 from utils import coroutine
 
 
+def filmwork_modified_extractor(filwork: FilmWork) -> datetime:
+    return filwork.modified
+
+
+def genre_modified_extractor(filworks: FilmWork) -> datetime:
+    g_modified_values: list[datetime] = []
+
+    for g in filworks.genres:
+        g_modified_values.append(g.modified)
+
+    return max(g_modified_values)
+
+
+def person_modified_extractor(filwork: FilmWork) -> datetime:
+    p_modified_values: list[datetime] = []
+
+    for p in filwork.persons:
+        p_modified_values.append(p.modified)
+
+    return max(p_modified_values)
+
+
 @coroutine
 def transform_movies(
     next: Generator[None, list[FilmWorkESDocRaw], None],
+    last_modified_getter: Callable[[FilmWork], datetime],
 ) -> Generator[None, list[FilmWork], None]:
 
     while filworks := (yield):
         transformed_filworks: list[FilmWorkESDocRaw] = []
 
         for filwork in filworks:
-            transformed_persons = [
-                FilworkPerson(
-                    person_id=p["person_id"],
-                    person_name=p["person_name"],
-                    person_role=p["person_role"],
-                )
-                for p in filwork.persons
-            ]
+            directors = [p for p in filwork.persons if p.person_role == "director"]
+            actors = [p for p in filwork.persons if p.person_role == "actor"]
+            writers = [p for p in filwork.persons if p.person_role == "writer"]
 
-            directors = [p for p in transformed_persons if p.person_role == "director"]
-            actors = [p for p in transformed_persons if p.person_role == "actor"]
-            writers = [p for p in transformed_persons if p.person_role == "writer"]
+            modified = last_modified_getter(filwork)
 
             transformed = FilmWorkESDocRaw(
                 id=str(filwork.id),
                 imdb_rating=filwork.rating,
-                genres=[g for g in filwork.genres],
+                genres=[g.genre_name for g in filwork.genres],
                 title=filwork.title,
                 description=filwork.description,
                 directors_names=[d.person_name for d in directors],
@@ -53,7 +69,7 @@ def transform_movies(
                     FilmWorkESDocPerson(id=w.person_id, name=w.person_name)
                     for w in writers
                 ],
-                modified=filwork.modified,
+                modified=modified,
             )
 
             transformed_filworks.append(transformed)

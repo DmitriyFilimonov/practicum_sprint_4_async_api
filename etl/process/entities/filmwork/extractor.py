@@ -1,6 +1,5 @@
 import psycopg
-from process.entities.models import FilmWork
-
+from process.entities.models import FilmWork, FilmworkGenre, FilmworkPerson
 from psycopg.rows import class_row
 from settings import settings
 from datetime import datetime
@@ -8,8 +7,6 @@ from typing import Generator
 
 from utils import coroutine
 from process.entities.models import FilmWork
-
-from psycopg import ServerCursor
 
 
 @coroutine
@@ -39,12 +36,21 @@ def extract_movies_by_modified(
                         DISTINCT jsonb_build_object(
                             'person_role', pfw.role,
                             'person_id', p.id,
-                            'person_name', p.full_name
+                            'person_name', p.full_name,
+                            'modified', p.modified
                         )
                     ) FILTER (WHERE p.id is not null),
                     '[]'
                 ) as persons,
-                array_agg(DISTINCT g.name) as genres
+                COALESCE (
+                    json_agg(
+                        DISTINCT jsonb_build_object(
+                            'genre_name', g.name,
+                            'modified', g.modified
+                        )
+                    ) FILTER (WHERE g.id is not null),
+                    '[]'
+                ) as genres
                 FROM content.film_work fw
                 LEFT JOIN content.person_film_work pfw ON pfw.film_work_id = fw.id
                 LEFT JOIN content.person p ON p.id = pfw.person_id
@@ -59,4 +65,17 @@ def extract_movies_by_modified(
             )
 
             while results := cursor.fetchmany(size=100):
-                next.send(results)
+                next.send(
+                    FilmWork(
+                        id=r.id,
+                        title=r.title,
+                        description=r.description,
+                        rating=r.rating,
+                        type=r.type,
+                        created=r.created,
+                        modified=r.modified,
+                        persons=[FilmworkPerson(**p) for p in r.persons],
+                        genres=[FilmworkGenre(**g) for g in r.genres],
+                    )
+                    for r in results
+                )

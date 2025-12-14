@@ -14,11 +14,11 @@ def load_movies(
     state_key: str,
     state: State,
 ) -> Generator[None, list[FilmWorkESDocRaw], None]:
-    while filworks := (yield):
+    while filmworks := (yield):
         if state.get_state(state_key) == datetime.min:
             create_scheme()
 
-        last_modified = filworks[-1].modified
+        last_modified = filmworks[-1].modified
 
         send_bulk(
             bulk=[
@@ -35,12 +35,12 @@ def load_movies(
                     writers=f.writers,
                     writers_names=f.writers_names,
                 )
-                for f in filworks
+                for f in filmworks
             ]
         )
 
         info(
-            f"info: {state_key} актуализированы до {str(last_modified)}. Обновлений: {len(filworks)}"
+            f"info: {state_key} актуализированы до {str(last_modified)}. Обновлений: {len(filmworks)}"
         )
 
         state.set_state(key=state_key, value=last_modified)
