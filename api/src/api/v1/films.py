@@ -1,3 +1,4 @@
+from typing import Optional
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -5,46 +6,54 @@ from pydantic import BaseModel
 
 from src.services.film import FilmService, get_film_service
 
-
-# Объект router, в котором регистрируем обработчики
 router = APIRouter()
 
-# FastAPI в качестве моделей использует библиотеку pydantic
-# https://pydantic-docs.helpmanual.io
-# У неё есть встроенные механизмы валидации, сериализации и десериализации
-# Также она основана на дата-классах
+
+class FilmDetailResponsePerson(BaseModel):
+    id: str
+    name: str
 
 
-# Модель ответа API
-class Film(BaseModel):
+class FilmDetailsResponse(BaseModel):
     id: str
     title: str
+    description: Optional[str]
+    directors_names: list[str]
+    actors_names: list[str]
+    writers_names: list[str]
+    directors: list[FilmDetailResponsePerson]
+    actors: list[FilmDetailResponsePerson]
+    writers: list[FilmDetailResponsePerson]
 
 
-@router.get("/{film_id}", response_model=Film)
+@router.get("/{film_id}", response_model=FilmDetailsResponse)
 async def film_details(
     film_id: str, film_service: FilmService = Depends(get_film_service)
-) -> Film:
+) -> FilmDetailsResponse:
     film = await film_service.get_by_id(film_id)
     if not film:
-        # Если фильм не найден, отдаём 404 статус
-        # Желательно пользоваться уже определёнными HTTP-статусами, которые содержат enum    # Такой код будет более поддерживаемым
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="film not found")
 
-    # Перекладываем данные из models.Film в Film
-    # Обратите внимание, что у модели бизнес-логики есть поле description,
-    # которое отсутствует в модели ответа API.
-    # Если бы использовалась общая модель для бизнес-логики и формирования ответов API,
-    # вы бы предоставляли клиентам данные, которые им не нужны
-    # и, возможно, данные, которые опасно возвращать
-    return Film(id=film.id, title=film.title)
+    return FilmDetailsResponse(id=film.id, title=film.title)
 
 
-@router.get("/", response_model=list[Film])
+class FilmListItemResponse(BaseModel):
+    id: str
+    title: str
+    description: Optional[str]
+    directors_names: list[str]
+    actors_names: list[str]
+    writers_names: list[str]
+    directors: list[FilmDetailResponsePerson]
+    actors: list[FilmDetailResponsePerson]
+    writers: list[FilmDetailResponsePerson]
+
+
+@router.get("/", response_model=list[FilmListItemResponse])
 async def films_list(
     offset: int = 0,
     limit: int = 100,
     film_service: FilmService = Depends(get_film_service),
-) -> list[Film]:
+) -> list[FilmListItemResponse]:
     films_list = await film_service.get_films_list(offset=offset, limit=limit)
     return films_list
