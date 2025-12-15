@@ -2,6 +2,8 @@ version: '3'
 services:
   api-service:
     build: ./api
+    env_file:
+      - ./api/.env
 
   nginx:
     image: nginx:latest
