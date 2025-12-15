@@ -1,8 +1,9 @@
 
-# Используем pydantic для упрощения работы при перегонке данных из json в объекты
 from pydantic import BaseModel
+from typing import Optional
+
 
 class Film(BaseModel):
     id: str
     title: str
-    description: str
+    description: Optional[str]

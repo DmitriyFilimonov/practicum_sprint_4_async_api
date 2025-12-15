@@ -1,6 +1,8 @@
 from typing import Optional
 from elasticsearch import AsyncElasticsearch
 
+MOVIES_ES_INDEX = 'movies'
+
 es: Optional[AsyncElasticsearch] = None
 
 # Функция понадобится при внедрении зависимостей

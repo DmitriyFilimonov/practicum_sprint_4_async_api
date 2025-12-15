@@ -5,7 +5,7 @@ from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 from redis.asyncio import Redis
 
-from src.db.elastic import get_elastic
+from src.db.elastic import MOVIES_ES_INDEX, get_elastic
 from src.db.redis import get_redis
 from src.models.film import Film
 
@@ -34,10 +34,13 @@ class FilmService:
 
     async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
         try:
-            doc = await self.elastic.get(index='movies', id=film_id)
+            doc = await self.elastic.get(
+                index=MOVIES_ES_INDEX,
+                id=film_id,
+            )
         except NotFoundError:
             return None
-        return Film(**doc['_source'])
+        return Film(**doc["_source"])
 
     async def _film_from_cache(self, film_id: str) -> Optional[Film]:
         # Пытаемся получить данные о фильме из кеша, используя команду get
@@ -56,6 +59,22 @@ class FilmService:
         # https://redis.io/commands/set/
         # pydantic позволяет сериализовать модель в json
         await self.redis.set(film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
+
+    async def get_films_list(self, offset: int = 0, limit: int = 100) -> list[Film]:
+        films_list = await self._get_films_list_from_elastic(offset=offset, limit=limit)
+
+        return films_list
+
+    async def _get_films_list_from_elastic(
+        self, offset: int = 0, limit: int = 100
+    ) -> list[Film]:
+        films_list_from_elastic = await self.elastic.search(
+            index=MOVIES_ES_INDEX, body={"from": offset, "size": limit}
+        )
+
+        sources = films_list_from_elastic["hits"]["hits"]
+
+        return [Film(**source["_source"]) for source in sources]
 
 
 @lru_cache()
