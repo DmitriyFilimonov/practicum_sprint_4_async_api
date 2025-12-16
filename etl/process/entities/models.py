@@ -98,3 +98,15 @@ class GenreFilmwork:
             self.modified = parse_db_date(self.modified).replace(
                 tzinfo=ZoneInfo("Etc/UTC")
             )
+
+
+@dataclass
+class GenreFilmworkESDoc:
+    id: str
+    name: str
+    description: Optional[str]
+
+
+@dataclass
+class GenreFilmworkESDocRaw(GenreFilmworkESDoc):
+    modified: datetime

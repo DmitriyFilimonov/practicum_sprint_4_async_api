@@ -1,5 +1,7 @@
 from time import sleep
 
+from utils import backoff
+from process.entities.genre_filmwork.extractor import extract_genres_by_modified
 from process.entities.person.extractor import extract_movies_by_person_modified
 from process.entities.person.constants import PERSONS_STATE_KEY
 from process.entities.genre.constants import GENRES_STATE_KEY
@@ -17,7 +19,8 @@ from process.entities.filmwork.loader import load_movies
 from process.entities.filmwork.constants import MOVIES_STATE_KEY
 
 
-def movies_etl(state: State):
+@backoff(border_sleep_time=60)
+def create_movies_etl(state: State):
     loader_by_modified = load_movies(state_key=MOVIES_STATE_KEY, state=state)
     transformer_by_modified = transform_movies(
         next=loader_by_modified, last_modified_getter=filmwork_modified_extractor
@@ -40,11 +43,12 @@ def movies_etl(state: State):
         next=transformer_by_person_modified
     )
 
-    while True:
+    @backoff(border_sleep_time=60)
+    def step():
         extractor_by_modified.send(state.get_state(MOVIES_STATE_KEY))
 
         extractor_by_genre_modified.send(state.get_state(GENRES_STATE_KEY))
 
         extractor_by_persons_modified.send(state.get_state(PERSONS_STATE_KEY))
 
-        sleep(15)
+    return step
