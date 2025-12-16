@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Optional
 from zoneinfo import ZoneInfo
 from datetime import datetime
 from uuid import UUID, uuid4
@@ -82,4 +83,30 @@ class FilmWorkESDoc:
 
 @dataclass
 class FilmWorkESDocRaw(FilmWorkESDoc):
+    modified: datetime
+
+
+@dataclass
+class GenreFilmwork:
+    id: str
+    name: str
+    description: Optional[str]
+    modified: datetime = field(default_factory=datetime.now)
+
+    def __post_init__(self):
+        if isinstance(self.modified, str):
+            self.modified = parse_db_date(self.modified).replace(
+                tzinfo=ZoneInfo("Etc/UTC")
+            )
+
+
+@dataclass
+class GenreFilmworkESDoc:
+    id: str
+    name: str
+    description: Optional[str]
+
+
+@dataclass
+class GenreFilmworkESDocRaw(GenreFilmworkESDoc):
     modified: datetime

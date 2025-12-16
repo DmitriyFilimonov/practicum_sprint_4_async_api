@@ -21,6 +21,7 @@ def load_movies(
         last_modified = filmworks[-1].modified
 
         send_bulk(
+            index="movies",
             bulk=[
                 FilmWorkESDoc(
                     actors=f.actors,
@@ -36,7 +37,7 @@ def load_movies(
                     writers_names=f.writers_names,
                 )
                 for f in filmworks
-            ]
+            ],
         )
 
         info(
