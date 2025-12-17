@@ -6,15 +6,21 @@ from settings import settings
 from process.entities.models import FilmWorkESDoc
 from utils import backoff
 
-from process.es_scheme import schema
+from process.es_scheme import movies_schema, genres_scheme
 
 ES_URL = f"http://{settings.es_host}:{settings.es_port}"
 
 
 @backoff(border_sleep_time=60, factor=1.5, start_sleep_time=10)
-def create_scheme():
+def create_movies_scheme():
     headers = {"Content-Type": "application/json"}
-    requests.put(f"{ES_URL}/movies", json=schema, headers=headers)
+    requests.put(f"{ES_URL}/movies", json=movies_schema, headers=headers)
+
+
+@backoff(border_sleep_time=60, factor=1.5, start_sleep_time=10)
+def create_genres_scheme():
+    headers = {"Content-Type": "application/json"}
+    requests.put(f"{ES_URL}/genres", json=genres_scheme, headers=headers)
 
 
 @backoff(border_sleep_time=60, factor=1.5, start_sleep_time=10)
