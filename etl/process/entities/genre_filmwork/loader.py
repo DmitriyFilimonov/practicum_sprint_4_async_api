@@ -2,7 +2,7 @@ from logging import info
 from datetime import datetime
 from typing import Generator
 
-from process.es_client import create_scheme, send_bulk
+from process.es_client import create_genres_scheme, send_bulk
 from state.state import State
 from process.entities.models import (
     GenreFilmworkESDoc,
@@ -19,7 +19,7 @@ def load_genres(
 ) -> Generator[None, list[GenreFilmworkESDocRaw], None]:
     while genres := (yield):
         if state.get_state(state_key) == datetime.min:
-            create_scheme()
+            create_genres_scheme()
 
         last_modified = genres[-1].modified
 

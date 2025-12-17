@@ -56,4 +56,5 @@ async def films_list(
     film_service: FilmService = Depends(get_film_service),
 ) -> list[FilmListItemResponse]:
     films_list = await film_service.get_films_list(offset=offset, limit=limit)
+
     return films_list
