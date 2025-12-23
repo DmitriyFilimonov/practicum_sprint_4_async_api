@@ -3,6 +3,7 @@ from typing import Callable, Generator
 
 from process.entities.models import (
     FilmWork,
+    FilmWorkESDocGenre,
     FilmWorkESDocPerson,
     FilmWorkESDocRaw,
 )
@@ -51,7 +52,10 @@ def transform_movies(
             transformed = FilmWorkESDocRaw(
                 id=str(filwork.id),
                 imdb_rating=filwork.rating,
-                genres=[g.genre_name for g in filwork.genres],
+                genres=[
+                    FilmWorkESDocGenre(id=g.genre_id, name=g.genre_name)
+                    for g in filwork.genres
+                ],
                 title=filwork.title,
                 description=filwork.description,
                 directors_names=[d.person_name for d in directors],

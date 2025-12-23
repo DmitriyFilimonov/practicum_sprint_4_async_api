@@ -45,6 +45,7 @@ def extract_movies_by_genre_modified(
                 COALESCE (
                     json_agg(
                         DISTINCT jsonb_build_object(
+                            'genre_id', g_selection.id,
                             'genre_name', g_selection.name,
                             'modified', g_selection.modified
                         )

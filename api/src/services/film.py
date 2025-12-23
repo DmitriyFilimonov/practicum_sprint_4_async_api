@@ -1,5 +1,6 @@
 from functools import lru_cache
 from typing import Optional
+from uuid import UUID
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends, Query
@@ -63,6 +64,7 @@ class FilmService:
 
     async def get_films_list(
         self,
+        genre: Optional[UUID],
         sort: Optional[str] = Query(
             None,
         ),
@@ -71,22 +73,30 @@ class FilmService:
     ) -> list[Film]:
 
         films_list = await self._get_films_list_from_elastic(
-            sort=sort, offset=offset, limit=limit
+            sort=sort, offset=offset, limit=limit, genre=genre
         )
 
         return films_list
 
     async def _get_films_list_from_elastic(
         self,
+        genre: Optional[UUID],
         sort: Optional[str] = Query(
             None,
         ),
         offset: int = 0,
         limit: int = 100,
     ) -> list[Film]:
-        body = {"from": offset, "size": limit}
+        body = {
+            "from": offset,
+            "size": limit,
+        }
 
         mapped_sorting = map_sorting(sort)
+
+        body["query"] = {
+            "nested": {"path": "genres", "query": {"term": {"genres.id": str(genre)}}}
+        }
 
         if mapped_sorting:
             sort_field, order = mapped_sorting

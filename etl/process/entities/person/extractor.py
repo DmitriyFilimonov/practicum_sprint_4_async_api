@@ -43,6 +43,7 @@ def extract_movies_by_person_modified(
                 COALESCE (
                     json_agg(
                         DISTINCT jsonb_build_object(
+                            'genre_id', g.id,
                             'genre_name', g.name,
                             'modified', g.modified
                         )
