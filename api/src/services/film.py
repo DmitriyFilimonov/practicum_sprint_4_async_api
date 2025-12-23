@@ -2,9 +2,10 @@ from functools import lru_cache
 from typing import Optional
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
-from fastapi import Depends
+from fastapi import Depends, Query
 from redis.asyncio import Redis
 
+from src.models.sort import map_sorting
 from src.db.elastic import MOVIES_ES_INDEX, get_elastic
 from src.db.redis import get_redis
 from src.models.film import Film
@@ -60,16 +61,39 @@ class FilmService:
         # pydantic позволяет сериализовать модель в json
         await self.redis.set(film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
 
-    async def get_films_list(self, offset: int = 0, limit: int = 100) -> list[Film]:
-        films_list = await self._get_films_list_from_elastic(offset=offset, limit=limit)
+    async def get_films_list(
+        self,
+        sort: Optional[str] = Query(
+            None,
+        ),
+        offset: int = 0,
+        limit: int = 100,
+    ) -> list[Film]:
+
+        films_list = await self._get_films_list_from_elastic(
+            sort=sort, offset=offset, limit=limit
+        )
 
         return films_list
 
     async def _get_films_list_from_elastic(
-        self, offset: int = 0, limit: int = 100
+        self,
+        sort: Optional[str] = Query(
+            None,
+        ),
+        offset: int = 0,
+        limit: int = 100,
     ) -> list[Film]:
+        body = {"from": offset, "size": limit}
+
+        mapped_sorting = map_sorting(sort)
+
+        if mapped_sorting:
+            sort_field, order = mapped_sorting
+            body["sort"] = {sort_field: {"order": order}}
+
         films_list_from_elastic = await self.elastic.search(
-            index=MOVIES_ES_INDEX, body={"from": offset, "size": limit}
+            index=MOVIES_ES_INDEX, body=body
         )
 
         sources = films_list_from_elastic["hits"]["hits"]
