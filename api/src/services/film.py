@@ -64,26 +64,22 @@ class FilmService:
 
     async def get_films_list(
         self,
-        genre: Optional[UUID],
-        sort: Optional[str] = Query(
-            None,
-        ),
+        genres: Optional[list[UUID]] = None,
+        sort: Optional[str] = None,
         offset: int = 0,
         limit: int = 100,
     ) -> list[Film]:
 
         films_list = await self._get_films_list_from_elastic(
-            sort=sort, offset=offset, limit=limit, genre=genre
+            sort=sort, offset=offset, limit=limit, genres=genres
         )
 
         return films_list
 
     async def _get_films_list_from_elastic(
         self,
-        genre: Optional[UUID],
-        sort: Optional[str] = Query(
-            None,
-        ),
+        genres: Optional[list[UUID]] = None,
+        sort: Optional[str] = None,
         offset: int = 0,
         limit: int = 100,
     ) -> list[Film]:
@@ -92,11 +88,15 @@ class FilmService:
             "size": limit,
         }
 
-        mapped_sorting = map_sorting(sort)
+        if genres:
+            body["query"] = {
+                "nested": {
+                    "path": "genres",
+                    "query": {"terms": {"genres.id": [str(g) for g in genres]}},
+                }
+            }
 
-        body["query"] = {
-            "nested": {"path": "genres", "query": {"term": {"genres.id": str(genre)}}}
-        }
+        mapped_sorting = map_sorting(sort)
 
         if mapped_sorting:
             sort_field, order = mapped_sorting

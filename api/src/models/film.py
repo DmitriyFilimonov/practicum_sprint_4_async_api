@@ -22,5 +22,5 @@ class Film(BaseModel):
     directors: list[FilmPerson]
     actors: list[FilmPerson]
     writers: list[FilmPerson]
-    imdb_rating: float
+    imdb_rating: Optional[float]
     genres: list[FilmGenre]

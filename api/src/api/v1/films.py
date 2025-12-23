@@ -41,21 +41,21 @@ async def film_details(
 class FilmListResponseItem(BaseModel):
     uuid: str
     title: str
-    imdb_rating: float
+    imdb_rating: Optional[float]
 
 
 @router.get("/", response_model=list[FilmListResponseItem])
 async def films_list(
-    genre: Optional[UUID] = None,
+    genres: Optional[list[UUID]] = Query(default=None),
     sort: Optional[str] = Query(
-        None,
+        default=None,
     ),
     page_size: int = 50,
     page_number: int = 0,
     film_service: FilmService = Depends(get_film_service),
 ) -> list[FilmListResponseItem]:
     films_list = await film_service.get_films_list(
-        sort=sort, offset=page_number * page_size, limit=page_size, genre=genre
+        sort=sort, offset=page_number * page_size, limit=page_size, genres=genres
     )
 
     return [
