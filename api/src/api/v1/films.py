@@ -43,6 +43,39 @@ class FilmListResponseItem(BaseModel):
     title: str
     imdb_rating: Optional[float]
 
+#TODO: подумать, как исключиться оригинальный фильм из выдачи (обязательно)
+# подумать, как можно отсортировать фильмы по степени похожести (необязательно)
+@router.get("/{film_id}/similar", response_model=list[FilmListResponseItem])
+async def similar_films(
+    film_id: str,
+    sort: Optional[str] = Query(
+        default=None,
+    ),
+    page_size: int = 50,
+    page_number: int = 0,
+    film_service: FilmService = Depends(get_film_service),
+):
+    film = await film_service.get_by_id(film_id)
+
+    if film:
+        similar_films = await film_service.get_films_list(
+            sort=sort,
+            offset=page_number * page_size,
+            limit=page_size,
+            genres=[g.id for g in film.genres],
+        )
+
+        return [
+            FilmListResponseItem(
+                uuid=f.id,
+                title=f.title,
+                imdb_rating=f.imdb_rating,
+            )
+            for f in similar_films
+        ]
+    
+    return []
+
 
 @router.get("/", response_model=list[FilmListResponseItem])
 async def films_list(
