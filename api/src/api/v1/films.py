@@ -43,8 +43,7 @@ class FilmListResponseItem(BaseModel):
     title: str
     imdb_rating: Optional[float]
 
-#TODO: подумать, как исключиться оригинальный фильм из выдачи (обязательно)
-# подумать, как можно отсортировать фильмы по степени похожести (необязательно)
+
 @router.get("/{film_id}/similar", response_model=list[FilmListResponseItem])
 async def similar_films(
     film_id: str,
@@ -63,6 +62,7 @@ async def similar_films(
             offset=page_number * page_size,
             limit=page_size,
             genres=[g.id for g in film.genres],
+            exclude_id=film_id,
         )
 
         return [
@@ -73,7 +73,7 @@ async def similar_films(
             )
             for f in similar_films
         ]
-    
+
     return []
 
 

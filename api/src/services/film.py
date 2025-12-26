@@ -65,13 +65,14 @@ class FilmService:
     async def get_films_list(
         self,
         genres: Optional[list[UUID]] = None,
+        exclude_id: Optional[str] = None,
         sort: Optional[str] = None,
         offset: int = 0,
         limit: int = 100,
     ) -> list[Film]:
 
         films_list = await self._get_films_list_from_elastic(
-            sort=sort, offset=offset, limit=limit, genres=genres
+            sort=sort, offset=offset, limit=limit, genres=genres, exclude_id=exclude_id
         )
 
         return films_list
@@ -79,6 +80,7 @@ class FilmService:
     async def _get_films_list_from_elastic(
         self,
         genres: Optional[list[UUID]] = None,
+        exclude_id: Optional[str] = None,
         sort: Optional[str] = None,
         offset: int = 0,
         limit: int = 100,
@@ -88,13 +90,30 @@ class FilmService:
             "size": limit,
         }
 
+        must = []
+        must_not = []
+
         if genres:
-            body["query"] = {
-                "nested": {
-                    "path": "genres",
-                    "query": {"terms": {"genres.id": [str(g) for g in genres]}},
+            must.append(
+                {
+                    "nested": {
+                        "path": "genres",
+                        "query": {"terms": {"genres.id": [str(g) for g in genres]}},
+                    }
                 }
-            }
+            )
+
+        if exclude_id:
+            must_not.append({"term": {"id": exclude_id}})
+
+        if must or must_not:
+            body["query"] = {"bool": {}}
+
+            if must:
+                body["query"]["bool"]["must"] = must
+
+            if must_not:
+                body["query"]["bool"]["must_not"] = must_not
 
         mapped_sorting = map_sorting(sort)
 
