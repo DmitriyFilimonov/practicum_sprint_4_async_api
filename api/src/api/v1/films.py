@@ -35,7 +35,19 @@ async def film_details(
     if not film:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="film not found")
 
-    return FilmDetailsResponse(id=film.id, title=film.title)
+    return FilmDetailsResponse(
+        id=film.id,
+        title=film.title,
+        description=film.description,
+        directors_names=film.directors_names,
+        actors_names=film.actors_names,
+        writers_names=film.writers_names,
+        actors=[FilmDetailResponsePerson(id=a.id, name=a.name) for a in film.actors],
+        directors=[
+            FilmDetailResponsePerson(id=d.id, name=d.name) for d in film.directors
+        ],
+        writers=[FilmDetailResponsePerson(id=w.id, name=w.name) for w in film.writers],
+    )
 
 
 class FilmListResponseItem(BaseModel):
