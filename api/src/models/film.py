@@ -7,6 +7,11 @@ class FilmPerson(BaseModel):
     name: str
 
 
+class FilmGenre(BaseModel):
+    id: str
+    name: str
+
+
 class Film(BaseModel):
     id: str
     title: str
@@ -17,3 +22,5 @@ class Film(BaseModel):
     directors: list[FilmPerson]
     actors: list[FilmPerson]
     writers: list[FilmPerson]
+    imdb_rating: Optional[float]
+    genres: list[FilmGenre]

@@ -23,6 +23,7 @@ class FilmworkPerson:
 
 @dataclass
 class FilmworkGenre:
+    genre_id: str
     genre_name: str
     modified: datetime = field(default_factory=datetime.now)
 
@@ -67,10 +68,16 @@ class FilmWorkESDocPerson:
 
 
 @dataclass
+class FilmWorkESDocGenre:
+    id: str
+    name: str
+
+
+@dataclass
 class FilmWorkESDoc:
     id: str
     imdb_rating: float
-    genres: list[str]
+    genres: list[FilmWorkESDocGenre]
     title: str
     description: str
     directors_names: list[str]

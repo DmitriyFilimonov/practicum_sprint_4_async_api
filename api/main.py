@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from http.client import HTTPException
 import logging
+from redis.asyncio import Redis
 
 from src.api.v1 import films, genres
 
@@ -38,7 +39,7 @@ async def startup():
     # Подключаемся к базам при старте сервера
     # Подключиться можем при работающем event-loop
     # Поэтому логика подключения происходит в асинхронной функции
-    redis.redis = Redis(host=config.REDIS_HOST, port=config.REDIS_PORT)
+    redis.redis = await redis.instanciate_redis() #redis инстанцируется с backoff, чтобы гарантировать свое существования в момент соаздания зависимостей
     elastic.es = AsyncElasticsearch(
         hosts=[f"{config.ELASTIC_SCHEMA}{config.ELASTIC_HOST}:{config.ELASTIC_PORT}"]
     )

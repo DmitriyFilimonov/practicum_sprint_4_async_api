@@ -32,7 +32,14 @@ movies_schema = {
         "properties": {
             "id": {"type": "keyword"},
             "imdb_rating": {"type": "float"},
-            "genres": {"type": "keyword"},
+            "genres": {
+                "type": "nested",
+                "dynamic": "strict",
+                "properties": {
+                    "id": {"type": "keyword"},
+                    "name": {"type": "text", "analyzer": "ru_en"},
+                },
+            },
             "title": {
                 "type": "text",
                 "analyzer": "ru_en",
