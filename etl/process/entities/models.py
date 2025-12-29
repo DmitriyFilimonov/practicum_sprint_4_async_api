@@ -117,3 +117,35 @@ class GenreFilmworkESDoc:
 @dataclass
 class GenreFilmworkESDocRaw(GenreFilmworkESDoc):
     modified: datetime
+
+
+@dataclass
+class PersonFilmworkFilm:
+    id: str
+    roles: list[str]
+
+
+@dataclass
+class PersonFilmwork:
+    id: str
+    full_name: str
+    roles_by_films: list[PersonFilmworkFilm]
+    modified: datetime = field(default_factory=datetime.now)
+
+    def __post_init__(self):
+        if isinstance(self.modified, str):
+            self.modified = parse_db_date(self.modified).replace(
+                tzinfo=ZoneInfo("Etc/UTC")
+            )
+
+
+@dataclass
+class PersonFilmworkESDoc:
+    id: str
+    name: str
+    films: list[PersonFilmworkFilm]
+
+
+@dataclass
+class PersonFilmworkESDocRaw(PersonFilmworkESDoc):
+    modified: datetime
