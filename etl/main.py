@@ -1,7 +1,7 @@
-from threading import Thread
 from time import sleep
 
 
+from process.entities.person_filmwork.etl import create_person_film_work_etl
 from process.entities.genre_filmwork.etl import create_genre_film_work_etl
 from utils import backoff
 from process.entities.filmwork.etl import create_movies_etl
@@ -22,10 +22,12 @@ def start_etl():
 
     movies_etl_step = create_movies_etl(state)
     genre_etl_step = create_genre_film_work_etl(state)
+    persons_etl_step = create_person_film_work_etl(state)
 
     while True:
         movies_etl_step()
         genre_etl_step()
+        persons_etl_step()
 
         sleep(15)
 
