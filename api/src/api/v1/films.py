@@ -10,6 +10,34 @@ from src.services.film import FilmService, get_film_service
 router = APIRouter()
 
 
+class FilmListResponseItem(BaseModel):
+    uuid: str
+    title: str
+    imdb_rating: Optional[float]
+
+
+@router.get("/search", response_model=list[FilmListResponseItem])
+async def similar_films(
+    query: Optional[str] = None,
+    page_size: int = 50,
+    page_number: int = 0,
+    film_service: FilmService = Depends(get_film_service),
+):
+
+    similar_films = await film_service.get_films_list(
+        offset=page_number * page_size, limit=page_size, query=query
+    )
+
+    return [
+        FilmListResponseItem(
+            uuid=f.id,
+            title=f.title,
+            imdb_rating=f.imdb_rating,
+        )
+        for f in similar_films
+    ]
+
+
 class FilmDetailResponsePerson(BaseModel):
     id: str
     name: str
@@ -48,12 +76,6 @@ async def film_details(
         ],
         writers=[FilmDetailResponsePerson(id=w.id, name=w.name) for w in film.writers],
     )
-
-
-class FilmListResponseItem(BaseModel):
-    uuid: str
-    title: str
-    imdb_rating: Optional[float]
 
 
 @router.get("/{film_id}/similar", response_model=list[FilmListResponseItem])
@@ -100,7 +122,10 @@ async def films_list(
     film_service: FilmService = Depends(get_film_service),
 ) -> list[FilmListResponseItem]:
     films_list = await film_service.get_films_list(
-        sort=sort, offset=page_number * page_size, limit=page_size, genres=genres
+        sort=sort,
+        offset=page_number * page_size,
+        limit=page_size,
+        genres=genres,
     )
 
     return [

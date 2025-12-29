@@ -70,16 +70,27 @@ class FilmService:
         sort: Optional[str] = None,
         offset: int = 0,
         limit: int = 100,
+        query: Optional[str] = None,
     ) -> list[Film]:
         films_list_cache = await self._get_films_list_slice_from_cache(
-            sort=sort, offset=offset, limit=limit, genres=genres, exclude_id=exclude_id
+            sort=sort,
+            offset=offset,
+            limit=limit,
+            genres=genres,
+            exclude_id=exclude_id,
+            query=query,
         )
 
         if films_list_cache:
             return films_list_cache
 
         films_list_es = await self._get_films_list_from_elastic(
-            sort=sort, offset=offset, limit=limit, genres=genres, exclude_id=exclude_id
+            sort=sort,
+            offset=offset,
+            limit=limit,
+            genres=genres,
+            query=query,
+            exclude_id=exclude_id,
         )
 
         if films_list_es:
@@ -90,6 +101,7 @@ class FilmService:
                 limit=limit,
                 offset=offset,
                 sort=sort,
+                query=query,
             )
 
             return films_list_es
@@ -99,6 +111,7 @@ class FilmService:
     async def _get_films_list_from_elastic(
         self,
         genres: Optional[list[UUID]] = None,
+        query: Optional[str] = None,
         exclude_id: Optional[str] = None,
         sort: Optional[str] = None,
         offset: int = 0,
@@ -111,6 +124,18 @@ class FilmService:
 
         must = []
         must_not = []
+
+        if query:
+            must.append(
+                {
+                    "multi_match": {
+                        "query": query,
+                        "fields": ["title^3", "description"],
+                        "type": "best_fields",
+                        "operator": "and",
+                    }
+                }
+            )
 
         if genres:
             must.append(
@@ -156,6 +181,7 @@ class FilmService:
         sort: Optional[str] = None,
         offset: int = 0,
         limit: int = 100,
+        query: Optional[str] = None,
     ):
         key_raw = {
             "genres": genres,
@@ -163,6 +189,7 @@ class FilmService:
             "sort": sort,
             "offset": offset,
             "limit": limit,
+            "query": query,
         }
 
         key = json.dumps(key_raw, sort_keys=True)
@@ -177,6 +204,7 @@ class FilmService:
         sort: Optional[str] = None,
         offset: int = 0,
         limit: int = 100,
+        query: Optional[str] = None,
     ):
         key_raw = {
             # UUID не сериализуется в JSON?
@@ -185,6 +213,7 @@ class FilmService:
             "sort": sort,
             "offset": offset,
             "limit": limit,
+            "query": query,
         }
 
         key = json.dumps(key_raw, sort_keys=True)
