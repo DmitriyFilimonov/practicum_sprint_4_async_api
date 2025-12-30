@@ -1,20 +1,17 @@
-from http import HTTPStatus
-from http.client import HTTPException
 import logging
-from redis.asyncio import Redis
 
-from src.api.v1 import films, genres
+from src.api.v1 import films, genres, persons
 
 from src.core.logger import LOGGING
 from fastapi import APIRouter, FastAPI
 from fastapi.responses import ORJSONResponse
-from pydantic import BaseModel
+
 
 from src.core import config
 from src.db import elastic
 from src.db import redis
 from elasticsearch import AsyncElasticsearch
-from redis import Redis
+
 
 import uvicorn
 
@@ -39,7 +36,9 @@ async def startup():
     # Подключаемся к базам при старте сервера
     # Подключиться можем при работающем event-loop
     # Поэтому логика подключения происходит в асинхронной функции
-    redis.redis = await redis.instanciate_redis() #redis инстанцируется с backoff, чтобы гарантировать свое существования в момент соаздания зависимостей
+    redis.redis = (
+        await redis.instanciate_redis()
+    )  # redis инстанцируется с backoff, чтобы гарантировать свое существования в момент соаздания зависимостей
     elastic.es = AsyncElasticsearch(
         hosts=[f"{config.ELASTIC_SCHEMA}{config.ELASTIC_HOST}:{config.ELASTIC_PORT}"]
     )
@@ -55,6 +54,7 @@ async def shutdown():
 # Теги указываем для удобства навигации по документации
 app.include_router(films.router, prefix="/api/v1/films", tags=["films"])
 app.include_router(genres.router, prefix="/api/v1/genres", tags=["genres"])
+app.include_router(persons.router, prefix="/api/v1/persons", tags=["persons"])
 
 
 if __name__ == "__main__":
