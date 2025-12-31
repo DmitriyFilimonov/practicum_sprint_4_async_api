@@ -1,5 +1,11 @@
 version: '3'
 services:
+  seeder:
+    build: ./seeder
+    depends_on:
+      db:
+        condition: service_healthy
+
   api-service:
     build: ./api
     env_file:
@@ -21,6 +27,11 @@ services:
       - ./db/.env
     volumes:
       - ./db/database_dump.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 2s
+      timeout: 5s
+      retries: 10
 
   es:
     image: elasticsearch:8.6.2
