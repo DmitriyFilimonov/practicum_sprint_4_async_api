@@ -13,22 +13,46 @@ class PersonDetailsResponseFilm(BaseModel):
     roles: list[str]
 
 
-class PersonDetailsResponse(BaseModel):
+class PersonDetailsResponseItem(BaseModel):
     uuid: str
     full_name: str
     films: list[PersonDetailsResponseFilm]
 
 
-@router.get("/{id}", response_model=PersonDetailsResponse)
+@router.get("/search", response_model=list[PersonDetailsResponseItem])
+async def film_details(
+    query: str = None,
+    page_size: int = 100,
+    page_number: int = 0,
+    person_service: PersonService = Depends(get_person_service),
+) -> list[PersonDetailsResponseItem]:
+    persons = await person_service.get_persons_list(
+        query=query, limit=page_size, offset=page_number * page_size
+    )
+
+    return [
+        PersonDetailsResponseItem(
+            uuid=person.id,
+            full_name=person.name,
+            films=[
+                PersonDetailsResponseFilm(uuid=f.id, roles=f.roles)
+                for f in person.films
+            ],
+        )
+        for person in persons
+    ]
+
+
+@router.get("/{id}", response_model=PersonDetailsResponseItem)
 async def film_details(
     id: str, person_service: PersonService = Depends(get_person_service)
-) -> PersonDetailsResponse:
+) -> PersonDetailsResponseItem:
     person = await person_service.get_person(id=id)
 
     if not person:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="film not found")
 
-    return PersonDetailsResponse(
+    return PersonDetailsResponseItem(
         uuid=person.id,
         full_name=person.name,
         films=[
@@ -46,8 +70,8 @@ class PersonFilmsResponseItem(BaseModel):
 @router.get("/{id}/film", response_model=list[PersonFilmsResponseItem])
 async def person_films(
     id: str,
-    offset: int = 0,
-    limit: int = 100,
+    page_number: int = 0,
+    page_size: int = 100,
     person_service: PersonService = Depends(get_person_service),
     films_service: FilmService = Depends(get_film_service),
 ) -> list[PersonFilmsResponseItem]:
@@ -58,7 +82,7 @@ async def person_films(
 
         if len(films_ids):
             films = await films_service.get_films_list(
-                id=films_ids, limit=limit, offset=offset
+                id=films_ids, limit=page_size, offset=page_number
             )
 
             if films and len(films):
