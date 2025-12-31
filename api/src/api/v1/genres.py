@@ -13,12 +13,22 @@ class GenresListResponseItem(BaseModel):
     description: Optional[str]
 
 
+@router.get("/{id}", response_model=GenresListResponseItem)
+async def genre(
+    id: str,
+    genre_service: GenreService = Depends(get_genre_service),
+) -> GenresListResponseItem:
+    genre = await genre_service.get_genre(id=id)
+
+    return genre
+
+
 @router.get("/", response_model=list[GenresListResponseItem])
-async def films_list(
+async def genres_list(
     offset: int = 0,
     limit: int = 100,
-    film_service: GenreService = Depends(get_genre_service),
+    genre_service: GenreService = Depends(get_genre_service),
 ) -> list[GenresListResponseItem]:
-    films_list = await film_service.get_genres_list(offset=offset, limit=limit)
+    films_list = await genre_service.get_genres_list(offset=offset, limit=limit)
 
     return films_list

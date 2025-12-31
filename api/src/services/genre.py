@@ -17,6 +17,40 @@ class GenreService:
         self.redis = redis
         self.elastic = elastic
 
+    async def get_genre(self, id: int):
+        genre = await self._get_genre_from_cache(id)
+
+        if genre:
+            return genre
+
+        genre = await self._get_genre_from_elastic(id)
+
+        if genre:
+            await self._put_genre_to_cache(genre)
+
+            return genre
+
+    async def _put_genre_to_cache(self, genre: Genre):
+        self.redis.set(genre.id, genre.json(), GANRES_CACHE_EXPIRE_IN_SECONDS)
+
+    async def _get_genre_from_elastic(self, id: str):
+        try:
+            doc = await self.elastic.get(
+                index=GENRES_ES_INDEX,
+                id=id,
+            )
+        except NotFoundError:
+            return None
+        return Genre(**doc["_source"])
+
+    async def _get_genre_from_cache(self, id: int):
+        genre = await self.redis.get(id)
+
+        if genre:
+            return Genre.parse_raw(genre)
+
+        return None
+
     async def get_genres_list(self, offset: int = 0, limit: int = 100) -> list[Genre]:
         genres_list_cache = await self._get_genres_list_from_cache(
             offset=offset, limit=limit
