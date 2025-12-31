@@ -3,6 +3,7 @@ from elasticsearch import AsyncElasticsearch
 
 MOVIES_ES_INDEX = 'movies'
 GENRES_ES_INDEX = 'genres'
+PERSONS_ES_INDEX = 'persons'
 
 es: Optional[AsyncElasticsearch] = None
 

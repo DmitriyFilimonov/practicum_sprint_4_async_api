@@ -19,7 +19,7 @@ class FilmListResponseItem(BaseModel):
 @router.get("/search", response_model=list[FilmListResponseItem])
 async def similar_films(
     query: Optional[str] = None,
-    page_size: int = 50,
+    page_size: int = 100,
     page_number: int = 0,
     film_service: FilmService = Depends(get_film_service),
 ):
@@ -84,7 +84,7 @@ async def similar_films(
     sort: Optional[str] = Query(
         default=None,
     ),
-    page_size: int = 50,
+    page_size: int = 100,
     page_number: int = 0,
     film_service: FilmService = Depends(get_film_service),
 ):
@@ -117,7 +117,7 @@ async def films_list(
     sort: Optional[str] = Query(
         default=None,
     ),
-    page_size: int = 50,
+    page_size: int = 100,
     page_number: int = 0,
     film_service: FilmService = Depends(get_film_service),
 ) -> list[FilmListResponseItem]:
