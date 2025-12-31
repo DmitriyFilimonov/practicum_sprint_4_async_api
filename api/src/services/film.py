@@ -71,6 +71,7 @@ class FilmService:
         offset: int = 0,
         limit: int = 100,
         query: Optional[str] = None,
+        id: Optional[list[str]] = None,
     ) -> list[Film]:
         films_list_cache = await self._get_films_list_slice_from_cache(
             sort=sort,
@@ -79,6 +80,7 @@ class FilmService:
             genres=genres,
             exclude_id=exclude_id,
             query=query,
+            id=id,
         )
 
         if films_list_cache:
@@ -91,6 +93,7 @@ class FilmService:
             genres=genres,
             query=query,
             exclude_id=exclude_id,
+            id=id,
         )
 
         if films_list_es:
@@ -102,6 +105,7 @@ class FilmService:
                 offset=offset,
                 sort=sort,
                 query=query,
+                id=id,
             )
 
             return films_list_es
@@ -116,6 +120,7 @@ class FilmService:
         sort: Optional[str] = None,
         offset: int = 0,
         limit: int = 100,
+        id: Optional[list[str]] = None,
     ) -> list[Film]:
         body = {
             "from": offset,
@@ -124,6 +129,9 @@ class FilmService:
 
         must = []
         must_not = []
+
+        if id and len(id):
+            must.append({"terms": {"id": id}})
 
         if query:
             must.append(
@@ -182,6 +190,7 @@ class FilmService:
         offset: int = 0,
         limit: int = 100,
         query: Optional[str] = None,
+        id: Optional[list[str]] = None,
     ):
         key_raw = {
             "genres": genres,
@@ -190,6 +199,7 @@ class FilmService:
             "offset": offset,
             "limit": limit,
             "query": query,
+            "id": id,
         }
 
         key = json.dumps(key_raw, sort_keys=True)
@@ -205,6 +215,7 @@ class FilmService:
         offset: int = 0,
         limit: int = 100,
         query: Optional[str] = None,
+        id: Optional[list[str]] = None,
     ):
         key_raw = {
             # UUID не сериализуется в JSON?
@@ -214,6 +225,7 @@ class FilmService:
             "offset": offset,
             "limit": limit,
             "query": query,
+            "id": id,
         }
 
         key = json.dumps(key_raw, sort_keys=True)
