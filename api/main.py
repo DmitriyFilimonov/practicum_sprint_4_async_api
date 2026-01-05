@@ -25,7 +25,9 @@ async def lifespan(_: FastAPI):
         await redis.instanciate_redis()
     )  # redis инстанцируется с backoff, чтобы гарантировать свое существования в момент соаздания зависимостей
     elastic.es = AsyncElasticsearch(
-        hosts=[f"{config.ELASTIC_SCHEMA}{config.ELASTIC_HOST}:{config.ELASTIC_PORT}"]
+        hosts=[
+            f"{config.ELASTIC_SCHEMA}{config.settings.elastic_host}:{config.settings.elastic_port}"
+        ]
     )
 
     yield
@@ -36,7 +38,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     # Конфигурируем название проекта. Оно будет отображаться в документации
-    title=config.PROJECT_NAME,
+    title=config.settings.project_name,
     # Адрес документации в красивом интерфейсе
     docs_url="/api/openapi",
     # Адрес документации в формате OpenAPI

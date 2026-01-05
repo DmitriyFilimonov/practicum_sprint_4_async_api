@@ -7,8 +7,9 @@ redis: Optional[Redis] = None
 
 ERRORS = (ConnectionError, TimeoutError)
 
+
 async def instanciate_redis():
-    redis = Redis(host=config.REDIS_HOST, port=config.REDIS_PORT)
+    redis = Redis(host=config.settings.redis_host, port=config.settings.redis_port)
 
     await redis.ping()
 
