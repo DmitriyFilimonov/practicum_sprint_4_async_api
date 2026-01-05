@@ -3,6 +3,7 @@ elasticsearch[async]==8.13.2
 redis==5.0.4 
 logging
 uvicorn
+uvicorn-worker
 pydantic
 psycopg[binary]==3.1.18
 requests
