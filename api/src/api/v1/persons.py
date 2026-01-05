@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 from src.services.person import PersonService, get_person_service
 from src.services.film import FilmService, get_film_service
+from src.models.pagination import Pagination, get_pagination
 
 router = APIRouter()
 
@@ -22,12 +23,11 @@ class PersonDetailsResponseItem(BaseModel):
 @router.get("/search", response_model=list[PersonDetailsResponseItem])
 async def film_details(
     query: str = None,
-    page_size: int = 100,
-    page_number: int = 0,
+    pagination: Pagination = Depends(get_pagination),
     person_service: PersonService = Depends(get_person_service),
 ) -> list[PersonDetailsResponseItem]:
     persons = await person_service.get_persons_list(
-        query=query, limit=page_size, offset=page_number * page_size
+        query=query, offset=pagination.offset, limit=pagination.limit
     )
 
     return [
@@ -70,8 +70,7 @@ class PersonFilmsResponseItem(BaseModel):
 @router.get("/{id}/film", response_model=list[PersonFilmsResponseItem])
 async def person_films(
     id: str,
-    page_number: int = 0,
-    page_size: int = 100,
+    pagination: Pagination = Depends(get_pagination),
     person_service: PersonService = Depends(get_person_service),
     films_service: FilmService = Depends(get_film_service),
 ) -> list[PersonFilmsResponseItem]:
@@ -82,7 +81,7 @@ async def person_films(
 
         if len(films_ids):
             films = await films_service.get_films_list(
-                id=films_ids, limit=page_size, offset=page_number
+                id=films_ids, offset=pagination.offset, limit=pagination.limit
             )
 
             if films and len(films):

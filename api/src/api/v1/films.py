@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from src.models.pagination import Pagination, get_pagination
 from src.services.film import FilmService, get_film_service
 
 router = APIRouter()
@@ -19,13 +20,12 @@ class FilmListResponseItem(BaseModel):
 @router.get("/search", response_model=list[FilmListResponseItem])
 async def similar_films(
     query: Optional[str] = None,
-    page_size: int = 100,
-    page_number: int = 0,
+    pagination: Pagination = Depends(get_pagination),
     film_service: FilmService = Depends(get_film_service),
 ):
 
     similar_films = await film_service.get_films_list(
-        offset=page_number * page_size, limit=page_size, query=query
+        offset=pagination.offset, limit=pagination.limit, query=query
     )
 
     return [
@@ -84,8 +84,7 @@ async def similar_films(
     sort: Optional[str] = Query(
         default=None,
     ),
-    page_size: int = 100,
-    page_number: int = 0,
+    pagination: Pagination = Depends(get_pagination),
     film_service: FilmService = Depends(get_film_service),
 ):
     film = await film_service.get_by_id(film_id)
@@ -93,8 +92,8 @@ async def similar_films(
     if film:
         similar_films = await film_service.get_films_list(
             sort=sort,
-            offset=page_number * page_size,
-            limit=page_size,
+            offset=pagination.offset,
+            limit=pagination.limit,
             genres=[g.id for g in film.genres],
             exclude_id=film_id,
         )
@@ -117,14 +116,13 @@ async def films_list(
     sort: Optional[str] = Query(
         default=None,
     ),
-    page_size: int = 100,
-    page_number: int = 0,
+    pagination: Pagination = Depends(get_pagination),
     film_service: FilmService = Depends(get_film_service),
 ) -> list[FilmListResponseItem]:
     films_list = await film_service.get_films_list(
         sort=sort,
-        offset=page_number * page_size,
-        limit=page_size,
+        offset=pagination.offset,
+        limit=pagination.limit,
         genres=genres,
     )
 
