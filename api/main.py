@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 import logging
 
 from src.api.v1 import films, genres, persons
@@ -18,6 +19,21 @@ import uvicorn
 router = APIRouter()
 
 
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    redis.redis = (
+        await redis.instanciate_redis()
+    )  # redis инстанцируется с backoff, чтобы гарантировать свое существования в момент соаздания зависимостей
+    elastic.es = AsyncElasticsearch(
+        hosts=[f"{config.ELASTIC_SCHEMA}{config.ELASTIC_HOST}:{config.ELASTIC_PORT}"]
+    )
+
+    yield
+
+    await redis.redis.close()
+    await elastic.es.close()
+
+
 app = FastAPI(
     # Конфигурируем название проекта. Оно будет отображаться в документации
     title=config.PROJECT_NAME,
@@ -28,26 +44,8 @@ app = FastAPI(
     # Можно сразу сделать небольшую оптимизацию сервиса
     # и заменить стандартный JSON-сериализатор на более шуструю версию, написанную на Rust
     default_response_class=ORJSONResponse,
+    lifespan=lifespan,
 )
-
-
-@app.on_event("startup")
-async def startup():
-    # Подключаемся к базам при старте сервера
-    # Подключиться можем при работающем event-loop
-    # Поэтому логика подключения происходит в асинхронной функции
-    redis.redis = (
-        await redis.instanciate_redis()
-    )  # redis инстанцируется с backoff, чтобы гарантировать свое существования в момент соаздания зависимостей
-    elastic.es = AsyncElasticsearch(
-        hosts=[f"{config.ELASTIC_SCHEMA}{config.ELASTIC_HOST}:{config.ELASTIC_PORT}"]
-    )
-
-
-@app.on_event("shutdown")
-async def shutdown():
-    await redis.redis.close()
-    await elastic.es.close()
 
 
 # Подключаем роутер к серверу, указав префикс /v1/films
