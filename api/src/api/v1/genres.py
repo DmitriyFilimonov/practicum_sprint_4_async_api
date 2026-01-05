@@ -1,3 +1,5 @@
+from src.models.pagination import Pagination, get_pagination
+
 from typing import Optional
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -25,10 +27,11 @@ async def genre(
 
 @router.get("/", response_model=list[GenresListResponseItem])
 async def genres_list(
-    offset: int = 0,
-    limit: int = 100,
+    pagination: Pagination = Depends(get_pagination),
     genre_service: GenreService = Depends(get_genre_service),
 ) -> list[GenresListResponseItem]:
-    films_list = await genre_service.get_genres_list(offset=offset, limit=limit)
+    films_list = await genre_service.get_genres_list(
+        offset=pagination.offset, limit=pagination.limit
+    )
 
     return films_list
