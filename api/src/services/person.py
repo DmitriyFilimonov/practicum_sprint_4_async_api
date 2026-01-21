@@ -1,9 +1,8 @@
 import json
 from typing import Optional
-from src.db.redis import get_redis
+from src.db.cache import Cache, get_cache
 from fastapi import Depends
 from functools import lru_cache
-from redis.asyncio import Redis
 from elasticsearch import AsyncElasticsearch, NotFoundError
 
 from src.models.person import Person
@@ -13,8 +12,8 @@ PERSON_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
 
 class PersonService:
-    def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
-        self.redis = redis
+    def __init__(self, cache: Cache, elastic: AsyncElasticsearch):
+        self.cache = cache
         self.elastic = elastic
 
     async def get_person(self, id: str):
@@ -40,15 +39,16 @@ class PersonService:
         return Person(**doc["_source"])
 
     async def _put_person_to_cache(self, person: Person):
-        await self.redis.set(person.id, person.json(), PERSON_CACHE_EXPIRE_IN_SECONDS)
+        await self.cache.set_value(
+            key=person.id,
+            value=person.json(),
+            expire_time=PERSON_CACHE_EXPIRE_IN_SECONDS,
+        )
 
     async def _get_person_from_cache(self, id: str):
-        person = await self.redis.get(id)
+        person = await self.cache.get_single_value(key=id, model=Person)
 
-        if person:
-            return Person.parse_raw(person)
-
-        return None
+        return person
 
     async def get_persons_list(
         self,
@@ -67,7 +67,7 @@ class PersonService:
             query=query, offset=offset, limit=limit
         )
 
-        self._put_persons_list_to_cache(
+        await self._put_persons_list_to_cache(
             query=query, limit=limit, offset=offset, persons_list=persons
         )
 
@@ -79,22 +79,10 @@ class PersonService:
         offset: int = 0,
         limit: int = 100,
     ):
-        key_raw = {"offset": offset, "limit": limit, "query": query}
-
-        key = json.dumps(key_raw, sort_keys=True)
-
-        result_raw = await self.redis.get(
-            key,
+        return await self.cache.get_list_from_cache(
+            key_raw={"offset": offset, "limit": limit, "query": query},
+            model=Person,
         )
-
-        if result_raw:
-            result_deserialized = json.loads(result_raw)
-
-            persons = [Person(**item) for item in result_deserialized]
-
-            return persons
-
-        return None
 
     async def _get_persons_list_from_elastic(
         self,
@@ -144,22 +132,22 @@ class PersonService:
         offset: int = 0,
         limit: int = 100,
     ):
-
         key_raw = {
             "offset": offset,
             "limit": limit,
             "query": query,
         }
 
-        key = json.dumps(key_raw, sort_keys=True)
         data = json.dumps([person.dict() for person in persons_list], sort_keys=True)
 
-        await self.redis.set(key, data, PERSON_CACHE_EXPIRE_IN_SECONDS)
+        await self.cache.set_value_by_dict_key(
+            key_raw=key_raw, value=data, expire_time=PERSON_CACHE_EXPIRE_IN_SECONDS
+        )
 
 
 @lru_cache()
 def get_person_service(
-    redis: Redis = Depends(get_redis),
+    cache: Cache = Depends(get_cache),
     elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> PersonService:
-    return PersonService(redis, elastic)
+    return PersonService(cache, elastic)

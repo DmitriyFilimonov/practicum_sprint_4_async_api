@@ -10,7 +10,7 @@ from fastapi.responses import ORJSONResponse
 
 from src.core import config
 from src.db import elastic
-from src.db import redis
+from src.db.cache import cache
 from elasticsearch import AsyncElasticsearch
 
 
@@ -21,9 +21,8 @@ router = APIRouter()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    redis.redis = (
-        await redis.instanciate_redis()
-    )  # redis инстанцируется с backoff, чтобы гарантировать свое существования в момент соаздания зависимостей
+    await cache.init()
+
     elastic.es = AsyncElasticsearch(
         hosts=[
             f"{config.ELASTIC_SCHEMA}{config.settings.elastic_host}:{config.settings.elastic_port}"
@@ -32,7 +31,7 @@ async def lifespan(_: FastAPI):
 
     yield
 
-    await redis.redis.close()
+    await cache.close()
     await elastic.es.close()
 
 
