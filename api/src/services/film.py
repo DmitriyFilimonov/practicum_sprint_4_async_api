@@ -3,19 +3,20 @@ import json
 from typing import Optional
 from uuid import UUID
 
-from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 
 from src.models.sort import map_sorting
-from src.db.elastic import MOVIES_ES_INDEX, get_elastic
+from src.db.elastic import ElasticWrapper, get_elastic
 from src.db.cache import Cache, get_cache
 from src.models.film import Film
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
+MOVIES_ES_INDEX = "movies"
+
 
 class FilmService:
-    def __init__(self, cache: Cache, elastic: AsyncElasticsearch):
+    def __init__(self, cache: Cache, elastic: ElasticWrapper):
         self.cache = cache
         self.elastic = elastic
 
@@ -34,14 +35,9 @@ class FilmService:
         return film
 
     async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
-        try:
-            doc = await self.elastic.get(
-                index=MOVIES_ES_INDEX,
-                id=film_id,
-            )
-        except NotFoundError:
-            return None
-        return Film(**doc["_source"])
+        return await self.elastic.get_doc_by_id(
+            index=MOVIES_ES_INDEX, id=film_id, model=Film
+        )
 
     async def _film_from_cache(self, film_id: str) -> Optional[Film]:
         film = await self.cache.get_single_value(key=film_id, model=Film)
@@ -164,12 +160,10 @@ class FilmService:
             body["sort"] = {sort_field: {"order": order}}
 
         films_list_from_elastic = await self.elastic.search(
-            index=MOVIES_ES_INDEX, body=body
+            index=MOVIES_ES_INDEX, body=body, model=Film
         )
 
-        sources = films_list_from_elastic["hits"]["hits"]
-
-        return [Film(**source["_source"]) for source in sources]
+        return films_list_from_elastic
 
     async def _put_films_list_slice_to_cache(
         self,
@@ -226,6 +220,6 @@ class FilmService:
 @lru_cache()
 def get_film_service(
     cache: Cache = Depends(get_cache),
-    elastic: AsyncElasticsearch = Depends(get_elastic),
+    elastic: ElasticWrapper = Depends(get_elastic),
 ) -> FilmService:
     return FilmService(cache, elastic)

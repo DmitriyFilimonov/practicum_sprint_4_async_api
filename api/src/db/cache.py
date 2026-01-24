@@ -8,7 +8,7 @@ from redis.asyncio import Redis
 # единый интерфейс базы данных с кешем
 class CacheDB(abc.ABC):
     @abc.abstractmethod
-    async def instantiate_cache_db(): ...
+    async def instantiate_cache_db(self): ...
 
     @abc.abstractmethod
     async def set_value(
@@ -19,7 +19,7 @@ class CacheDB(abc.ABC):
     async def get_value(self, key: str) -> Any | None: ...
 
     @abc.abstractmethod
-    def create_key(key_raw: dict[str, Any]) -> str: ...
+    def create_key(self, key_raw: dict[str, Any]) -> str: ...
 
     @abc.abstractmethod
     async def close(self): ...
@@ -38,11 +38,11 @@ class RedisCahce(CacheDB):
         return self.redis
 
     async def set_value(self, key: str, value: Any, expire_time: Optional[int]) -> None:
-        self.redis.set(key, value, expire_time)
+        await self.redis.set(key, value, expire_time)
 
     async def get_value(self, key: str) -> str | None:
         try:
-            value = self.redis.get(key)
+            value = await self.redis.get(key)
 
             return value.decode()
 
@@ -108,7 +108,7 @@ class Cache:
         await self.cache_db.close()
 
 
-cache = Cache(cache_db=RedisCahce())
+cache: Cache | None
 
 
 def get_cache():
