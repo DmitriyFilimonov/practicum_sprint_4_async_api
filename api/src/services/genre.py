@@ -1,18 +1,18 @@
 import json
 from functools import lru_cache
-from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 
-from src.db.elastic import GENRES_ES_INDEX, get_elastic
+from src.db.elastic import ElasticWrapper, get_elastic
 from src.db.cache import Cache, get_cache
 from src.models.genre import Genre
 
 
 GANRES_CACHE_EXPIRE_IN_SECONDS = 60 * 20
+GENRES_ES_INDEX = "genres"
 
 
 class GenreService:
-    def __init__(self, cache: Cache, elastic: AsyncElasticsearch):
+    def __init__(self, cache: Cache, elastic: ElasticWrapper):
         self.cache = cache
         self.elastic = elastic
 
@@ -35,14 +35,9 @@ class GenreService:
         )
 
     async def _get_genre_from_elastic(self, id: str):
-        try:
-            doc = await self.elastic.get(
-                index=GENRES_ES_INDEX,
-                id=id,
-            )
-        except NotFoundError:
-            return None
-        return Genre(**doc["_source"])
+        return await self.elastic.get_doc_by_id(
+            index=GENRES_ES_INDEX, id=id, model=Genre
+        )
 
     async def _get_genre_from_cache(self, id: int):
         genre = await self.cache.get_single_value(key=id, model=Genre)
@@ -94,18 +89,14 @@ class GenreService:
     async def _get_genres_list_from_elastic(
         self, offset: int = 0, limit: int = 100
     ) -> list[Genre]:
-        doc = await self.elastic.search(
-            index=GENRES_ES_INDEX, body={"from": offset, "size": limit}
+        return await self.elastic.search(
+            index=GENRES_ES_INDEX, body={"from": offset, "size": limit}, model=Genre
         )
-
-        sources = doc["hits"]["hits"]
-
-        return [Genre(**source["_source"]) for source in sources]
 
 
 @lru_cache()
 def get_genre_service(
     cache: Cache = Depends(get_cache),
-    elastic: AsyncElasticsearch = Depends(get_elastic),
+    elastic: ElasticWrapper = Depends(get_elastic),
 ) -> GenreService:
     return GenreService(cache, elastic)

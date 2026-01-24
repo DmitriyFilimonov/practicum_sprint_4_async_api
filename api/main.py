@@ -10,7 +10,7 @@ from fastapi.responses import ORJSONResponse
 
 from src.core import config
 from src.db import elastic
-from src.db.cache import cache
+from src.db import cache
 from elasticsearch import AsyncElasticsearch
 
 
@@ -21,18 +21,22 @@ router = APIRouter()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    await cache.init()
+    cache.cache = cache.Cache(cache_db=cache.RedisCahce())
 
-    elastic.es = AsyncElasticsearch(
-        hosts=[
-            f"{config.ELASTIC_SCHEMA}{config.settings.elastic_host}:{config.settings.elastic_port}"
-        ]
+    await cache.cache.init()
+
+    elastic.elastic_wrapper = elastic.ElasticWrapper(
+        elastic=AsyncElasticsearch(
+            hosts=[
+                f"{config.ELASTIC_SCHEMA}{config.settings.elastic_host}:{config.settings.elastic_port}"
+            ]
+        )
     )
 
     yield
 
-    await cache.close()
-    await elastic.es.close()
+    await cache.cache.close()
+    await elastic.elastic_wrapper.close()
 
 
 app = FastAPI(

@@ -6,13 +6,15 @@ from functools import lru_cache
 from elasticsearch import AsyncElasticsearch, NotFoundError
 
 from src.models.person import Person
-from src.db.elastic import PERSONS_ES_INDEX, get_elastic
+from src.db.elastic import get_elastic, ElasticWrapper
 
 PERSON_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
+PERSONS_ES_INDEX = "persons"
+
 
 class PersonService:
-    def __init__(self, cache: Cache, elastic: AsyncElasticsearch):
+    def __init__(self, cache: Cache, elastic: ElasticWrapper):
         self.cache = cache
         self.elastic = elastic
 
@@ -29,14 +31,9 @@ class PersonService:
         return person
 
     async def _get_person_from_elastic(self, id: str):
-        try:
-            doc = await self.elastic.get(
-                index=PERSONS_ES_INDEX,
-                id=id,
-            )
-        except NotFoundError:
-            return None
-        return Person(**doc["_source"])
+        return await self.elastic.get_doc_by_id(
+            index=PERSONS_ES_INDEX, id=id, model=Person
+        )
 
     async def _put_person_to_cache(self, person: Person):
         await self.cache.set_value(
@@ -115,15 +112,9 @@ class PersonService:
             if must:
                 body["query"]["bool"]["must"] = must
 
-        persons_from_elastic = await self.elastic.search(
-            index=PERSONS_ES_INDEX, body=body
+        return await self.elastic.search(
+            index=PERSONS_ES_INDEX, body=body, model=Person
         )
-
-        sources = persons_from_elastic["hits"]["hits"]
-
-        persons = [Person(**source["_source"]) for source in sources]
-
-        return persons
 
     async def _put_persons_list_to_cache(
         self,
@@ -148,6 +139,6 @@ class PersonService:
 @lru_cache()
 def get_person_service(
     cache: Cache = Depends(get_cache),
-    elastic: AsyncElasticsearch = Depends(get_elastic),
+    elastic: ElasticWrapper = Depends(get_elastic),
 ) -> PersonService:
     return PersonService(cache, elastic)
