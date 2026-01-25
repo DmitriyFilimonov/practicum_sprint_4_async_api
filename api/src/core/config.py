@@ -7,8 +7,6 @@ from src.core.logger import LOGGING
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file="../.env")
-
     project_name: str
 
     api_port: str

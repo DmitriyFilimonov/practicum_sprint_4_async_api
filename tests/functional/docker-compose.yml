@@ -1,0 +1,31 @@
+services:
+  fastapi:
+    build: ../../.
+    image: fastapi-image
+    env_file:
+      - ../../.env
+  
+  tests:
+    image: fastapi-image
+    env_file:
+      - ../../.env
+    volumes:
+      - ../../tests:/tests/
+    entrypoint: >
+      sh -c "pip install -r /tests/functional/requirements.txt
+      && python3 /tests/functional/utils/wait_for_es.py
+      && python3 /tests/functional/utils/wait_for_redis.py
+      && pytest /tests/functional/src"
+
+  # скопировано из тестируемого приложения
+  cache:
+    image: redis:5.0.4
+    
+  # скопировано из тестируемого приложения 
+  es:
+    image: elasticsearch:8.6.2
+    ports:
+      - 9200:9200
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
