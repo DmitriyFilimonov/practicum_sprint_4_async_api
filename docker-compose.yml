@@ -7,9 +7,9 @@ services:
         condition: service_healthy
 
   api-service:
-    build: ./api
+    build: .
     env_file:
-      - ./api/.env
+      - .env
 
   nginx:
     image: nginx:latest
