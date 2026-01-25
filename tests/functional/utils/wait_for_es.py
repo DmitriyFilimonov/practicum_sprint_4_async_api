@@ -1,14 +1,14 @@
 import time
-
 from elasticsearch import Elasticsearch
-from tests.functional import settings
+import os
+
+ELASTIC_HOST = os.getenv("ELASTIC_HOST")
+ELASTIC_PORT = os.getenv("ELASTIC_PORT")
 
 
 if __name__ == "__main__":
     es_client = Elasticsearch(
-        hosts=f"{settings.settings.elastic_host}:{settings.settings.elastic_port}",
-        validate_cert=False,
-        use_ssl=False,
+        hosts=f"http://{ELASTIC_HOST}:{ELASTIC_PORT}",
     )
     while True:
         if es_client.ping():
