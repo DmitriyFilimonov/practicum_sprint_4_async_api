@@ -1,4 +1,3 @@
-import datetime
 import uuid
 
 import aiohttp
@@ -12,8 +11,15 @@ from tests.functional.settings import settings
 #  Любой тест с асинхронными вызовами нужно оборачивать декоратором `pytest.mark.asyncio`, который следит за запуском и работой цикла событий.
 
 
+@pytest.mark.parametrize(
+    "query_data, expected_response",
+    [
+        ({"query": "The Star"}, {"status": 200, "length": 60}),
+        ({"query": "Mashed potato"}, {"status": 200, "length": 0}),
+    ],
+)
 @pytest.mark.asyncio
-async def test_search():
+async def test_search(query_data, expected_response):
 
     # 1. Генерируем данные для ES
     elastic_data = [
@@ -74,8 +80,8 @@ async def test_search():
     # 3. Запрашиваем данные из ES по API
 
     session = aiohttp.ClientSession()
-    url = "http://fastapi:8000" + "/api/v1/films/search/"
-    query_data = {"query": "The Star"}
+    url = settings.service_url + "/api/v1/films/search/"
+
     async with session.get(url, params=query_data) as response:
         text = await response.text()
         print(text)
@@ -86,5 +92,5 @@ async def test_search():
 
     # 4. Проверяем ответ
 
-    assert status == 200
-    assert len(body) == 60
+    assert status == expected_response["status"]
+    assert len(body) == expected_response["length"]

@@ -2,8 +2,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    project_name: str
+    service_url: str = "http://fastapi:8000"
 
+    project_name: str
     api_port: str
 
     redis_host: str
