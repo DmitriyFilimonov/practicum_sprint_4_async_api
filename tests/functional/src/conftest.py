@@ -6,7 +6,7 @@ import pytest_asyncio
 from tests.functional.settings import settings
 
 
-@pytest_asyncio.fixture(name="es_client")
+@pytest_asyncio.fixture(name="es_client", scope="session")
 async def es_client():
     es_client = AsyncElasticsearch(
         hosts=f"http://{settings.elastic_host}:{settings.elastic_port}",

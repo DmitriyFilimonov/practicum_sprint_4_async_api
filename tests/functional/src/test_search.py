@@ -17,7 +17,7 @@ from tests.functional.settings import settings
         ({"query": "Mashed potato"}, {"status": 200, "length": 0}),
     ],
 )
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="session")
 async def test_search(es_write_data, query_data, expected_response):
 
     # 1. Генерируем данные для ES
