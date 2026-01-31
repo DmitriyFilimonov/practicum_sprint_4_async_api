@@ -2,8 +2,7 @@ import uuid
 
 import aiohttp
 import pytest
-from elasticsearch import AsyncElasticsearch
-from elasticsearch.helpers import async_bulk
+
 
 from tests.functional.settings import settings
 
@@ -19,7 +18,7 @@ from tests.functional.settings import settings
     ],
 )
 @pytest.mark.asyncio
-async def test_search(query_data, expected_response):
+async def test_search(es_write_data, query_data, expected_response):
 
     # 1. Генерируем данные для ES
     elastic_data = [
@@ -55,27 +54,7 @@ async def test_search(query_data, expected_response):
         bulk_query.append(data)
 
     # 2. Загружаем данные в ES
-    elastic_client = AsyncElasticsearch(
-        hosts=f"http://{settings.elastic_host}:{settings.elastic_port}",
-        verify_certs=False,
-    )
-    if await elastic_client.indices.exists(index=settings.elastic_index):
-        await elastic_client.indices.delete(index=settings.elastic_index)
-    await elastic_client.indices.create(
-        index=settings.elastic_index, **settings.elastic_index_mapping
-    )
-
-    updated, errors = await async_bulk(
-        client=elastic_client, actions=bulk_query, refresh="wait_for"
-    )
-
-    await elastic_client.close()
-
-    if errors:
-        for error in errors:
-            print(error)
-
-        raise Exception("Ошибка записи данных в Elasticsearch")
+    await es_write_data(bulk_query)
 
     # 3. Запрашиваем данные из ES по API
 
@@ -83,8 +62,6 @@ async def test_search(query_data, expected_response):
     url = settings.service_url + "/api/v1/films/search/"
 
     async with session.get(url, params=query_data) as response:
-        text = await response.text()
-        print(text)
         body = await response.json()
         headers = response.headers
         status = response.status
