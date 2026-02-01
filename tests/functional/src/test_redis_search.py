@@ -11,12 +11,13 @@ import pytest
 @pytest.mark.parametrize(
     "query_data, expected_response",
     [
-        ({"query": "The Star"}, {"status": 200, "length": 60}),
-        ({"query": "Mashed potato"}, {"status": 200, "length": 0}),
+        ({"query": "Bim bam boom"}, {"status": 200, "length": 100}),
+        ({"query": "qwerty12345"}, {"status": 200, "length": 0}),
     ],
 )
 @pytest.mark.asyncio(scope="session")
-async def test_search(
+async def test_redis_search(
+    es_clear_index: Callable[[None], Awaitable[None]],
     make_get_request: Callable[[dict[str, str], str], Awaitable[tuple[int, Any]]],
     es_write_data: Callable[[list[dict]], Awaitable[None]],
     query_data: dict[str, str],
@@ -32,7 +33,7 @@ async def test_search(
                 {"id": "7e717ef7-1d80-4a80-a6ef-502be18aaa87", "name": "Action"},
                 {"id": "d72c15a9-39e3-4dce-91cc-603c7a8eda3d", "name": "Sci-Fi"},
             ],
-            "title": "The Star",
+            "title": "Bim bam boom",
             "description": "New World",
             "directors_names": ["Stan"],
             "actors_names": ["Ann", "Bob"],
@@ -47,7 +48,7 @@ async def test_search(
                 {"id": "b45bd7bc-2e16-46d5-b125-983d356768c6", "name": "Howard"},
             ],
         }
-        for _ in range(60)
+        for _ in range(160)
     ]
 
     bulk_query: list[dict] = []
@@ -60,11 +61,17 @@ async def test_search(
 
     await es_write_data(bulk_query)
 
-    # 3. Запрашиваем данные из ES по API
+    # 3. Запрашиваем данные по API и заполняем Redis
 
-    status, body = await make_get_request(query_data, "/api/v1/films/search/")
+    await make_get_request(query_data, "/api/v1/films/search")
 
-    # 4. Проверяем ответ
+    # 4. Очищаем elastic
+
+    await es_clear_index()
+
+    status, body = await make_get_request(query_data, "/api/v1/films/search")
+
+    # 5. Ппроверяем, что данные закешировались в Redis
 
     assert status == expected_response["status"]
     assert len(body) == expected_response["length"]

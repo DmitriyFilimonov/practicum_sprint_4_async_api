@@ -15,8 +15,8 @@ async def http_client():
 
 
 @pytest_asyncio.fixture(name="make_get_request")
-def make_get_request(http_client):
-    async def inner(query_data: dict[str, str], api_route:str):
+def make_get_request(http_client: aiohttp.ClientSession):
+    async def inner(query_data: dict[str, str], api_route: str):
         url = settings.service_url + api_route
 
         async with http_client.get(url, params=query_data) as response:
@@ -52,5 +52,17 @@ def es_write_data(es_client: AsyncElasticsearch):
 
         if errors:
             raise Exception("Ошибка записи данных в Elasticsearch")
+
+    return inner
+
+
+@pytest_asyncio.fixture(name="es_clear_index")
+def es_clear_index(es_client: AsyncElasticsearch):
+    async def inner():
+        await es_client.delete_by_query(
+            index=settings.elastic_index,
+            body={"query": {"match_all": {}}},
+            refresh=True,
+        )
 
     return inner
