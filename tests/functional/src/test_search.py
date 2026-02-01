@@ -1,3 +1,4 @@
+from typing import Any, Awaitable, Callable
 import uuid
 
 import aiohttp
@@ -18,7 +19,12 @@ from tests.functional.settings import settings
     ],
 )
 @pytest.mark.asyncio(scope="session")
-async def test_search(es_write_data, query_data, expected_response):
+async def test_search(
+    make_get_request: Callable[[dict[str, str], str], Awaitable[tuple[int, Any]]],
+    es_write_data: Callable[[list[dict]], Awaitable[None]],
+    query_data: dict[str, str],
+    expected_response: dict[str, int],
+):
 
     # 1. Генерируем данные для ES
     elastic_data = [
@@ -54,18 +60,12 @@ async def test_search(es_write_data, query_data, expected_response):
         bulk_query.append(data)
 
     # 2. Загружаем данные в ES
+
     await es_write_data(bulk_query)
 
     # 3. Запрашиваем данные из ES по API
 
-    session = aiohttp.ClientSession()
-    url = settings.service_url + "/api/v1/films/search/"
-
-    async with session.get(url, params=query_data) as response:
-        body = await response.json()
-        headers = response.headers
-        status = response.status
-    await session.close()
+    status, body = await make_get_request(query_data, "/api/v1/films/search/")
 
     # 4. Проверяем ответ
 

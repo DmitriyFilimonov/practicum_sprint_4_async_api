@@ -1,9 +1,32 @@
+import aiohttp
 from elasticsearch.helpers import async_bulk
 
 from elasticsearch import AsyncElasticsearch
 import pytest_asyncio
 
 from tests.functional.settings import settings
+
+
+@pytest_asyncio.fixture(name="http_client", scope="session")
+async def http_client():
+    session = aiohttp.ClientSession()
+    yield session
+    await session.close()
+
+
+@pytest_asyncio.fixture(name="make_get_request")
+def make_get_request(http_client):
+    async def inner(query_data: dict[str, str], api_route:str):
+        url = settings.service_url + api_route
+
+        async with http_client.get(url, params=query_data) as response:
+            body = await response.json()
+            headers = response.headers
+            status = response.status
+
+        return status, body
+
+    return inner
 
 
 @pytest_asyncio.fixture(name="es_client", scope="session")
