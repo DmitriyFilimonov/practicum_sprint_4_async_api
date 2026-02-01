@@ -1,6 +1,4 @@
 from typing import Any, Awaitable, Callable
-import uuid
-
 import pytest
 
 
@@ -17,6 +15,7 @@ import pytest
 )
 @pytest.mark.asyncio(scope="session")
 async def test_es_search(
+    generate_test_films,
     make_get_request: Callable[[dict[str, str], str], Awaitable[tuple[int, Any]]],
     es_write_data: Callable[[list[dict]], Awaitable[None]],
     query_data: dict[str, str],
@@ -24,31 +23,7 @@ async def test_es_search(
 ):
 
     # 1. Генерируем данные для ES
-    elastic_data = [
-        {
-            "id": str(uuid.uuid4()),
-            "imdb_rating": 8.5,
-            "genres": [
-                {"id": "7e717ef7-1d80-4a80-a6ef-502be18aaa87", "name": "Action"},
-                {"id": "d72c15a9-39e3-4dce-91cc-603c7a8eda3d", "name": "Sci-Fi"},
-            ],
-            "title": "The Star",
-            "description": "New World",
-            "directors_names": ["Stan"],
-            "actors_names": ["Ann", "Bob"],
-            "writers_names": ["Ben", "Howard"],
-            "directors": [],
-            "actors": [
-                {"id": "ef86b8ff-3c82-4d31-ad8e-72b69f4e3f95", "name": "Ann"},
-                {"id": "fb111f22-121e-44a7-b78f-b19191810fbf", "name": "Bob"},
-            ],
-            "writers": [
-                {"id": "caf76c67-c0fe-477e-8766-3ab3ff2574b5", "name": "Ben"},
-                {"id": "b45bd7bc-2e16-46d5-b125-983d356768c6", "name": "Howard"},
-            ],
-        }
-        for _ in range(60)
-    ]
+    elastic_data = generate_test_films(60)
 
     bulk_query: list[dict] = []
     for row in elastic_data:

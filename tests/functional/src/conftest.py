@@ -2,9 +2,45 @@ import aiohttp
 from elasticsearch.helpers import async_bulk
 
 from elasticsearch import AsyncElasticsearch
+import pytest
 import pytest_asyncio
 
 from tests.functional.settings import settings
+import uuid
+
+
+@pytest_asyncio.fixture(name="generate_test_films")
+def generate_test_films():
+    def inner(count: int):
+        elastic_data = [
+            {
+                "id": str(uuid.uuid4()),
+                "imdb_rating": 8.5,
+                "genres": [
+                    {"id": "7e717ef7-1d80-4a80-a6ef-502be18aaa87", "name": "Action"},
+                    {"id": "d72c15a9-39e3-4dce-91cc-603c7a8eda3d", "name": "Sci-Fi"},
+                ],
+                "title": "The Star",
+                "description": "New World",
+                "directors_names": ["Stan"],
+                "actors_names": ["Ann", "Bob"],
+                "writers_names": ["Ben", "Howard"],
+                "directors": [],
+                "actors": [
+                    {"id": "ef86b8ff-3c82-4d31-ad8e-72b69f4e3f95", "name": "Ann"},
+                    {"id": "fb111f22-121e-44a7-b78f-b19191810fbf", "name": "Bob"},
+                ],
+                "writers": [
+                    {"id": "caf76c67-c0fe-477e-8766-3ab3ff2574b5", "name": "Ben"},
+                    {"id": "b45bd7bc-2e16-46d5-b125-983d356768c6", "name": "Howard"},
+                ],
+            }
+            for _ in range(count)
+        ]
+
+        return elastic_data
+
+    return inner
 
 
 @pytest_asyncio.fixture(name="http_client", scope="session")
