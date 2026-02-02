@@ -1,12 +1,10 @@
 from typing import Optional
 from http import HTTPStatus
 from uuid import UUID
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-
 from src.models.pagination import Pagination, get_pagination
-from src.services.film import FilmService, get_film_service
+from src.services.film import FilmService, get_film_service, FilmSortableFields
 
 router = APIRouter()
 
@@ -113,7 +111,7 @@ async def similar_films(
 @router.get("/", response_model=list[FilmListResponseItem])
 async def films_list(
     genres: Optional[list[UUID]] = Query(default=None),
-    sort: Optional[str] = Query(
+    sort: Optional[FilmSortableFields] = Query(
         default=None,
     ),
     pagination: Pagination = Depends(get_pagination),
