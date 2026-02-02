@@ -82,7 +82,7 @@ class FilmService:
             id=id,
         )
 
-        if films_list_es:
+        if films_list_es and len(films_list_es):
             await self._put_films_list_slice_to_cache(
                 films_list=films_list_es,
                 exclude_id=exclude_id,
@@ -96,7 +96,7 @@ class FilmService:
 
             return films_list_es
 
-        return None
+        return []
 
     async def _get_films_list_from_elastic(
         self,
@@ -107,7 +107,7 @@ class FilmService:
         offset: int = 0,
         limit: int = 100,
         id: Optional[list[str]] = None,
-    ) -> list[Film]:
+    ):
         body = {
             "from": offset,
             "size": limit,
@@ -126,7 +126,7 @@ class FilmService:
                         "query": query,
                         "fields": ["title^3", "description"],
                         "type": "best_fields",
-                        "operator": "and",
+                        "operator": "or",
                     }
                 }
             )

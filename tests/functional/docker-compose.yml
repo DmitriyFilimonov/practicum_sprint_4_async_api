@@ -4,6 +4,9 @@ services:
     image: fastapi-image
     env_file:
       - ../../.env
+    # для проверок через браузер
+    ports:
+      - 8000:8000
   
   tests:
     image: fastapi-image

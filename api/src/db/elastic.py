@@ -21,7 +21,10 @@ class ElasticWrapper:
 
         sources = docs["hits"]["hits"]
 
-        return [model(**source["_source"]) for source in sources]
+        if sources:
+            return [model(**source["_source"]) for source in sources]
+
+        return None
 
     async def close(self):
         self.elastic.close()
