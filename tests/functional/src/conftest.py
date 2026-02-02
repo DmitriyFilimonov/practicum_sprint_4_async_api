@@ -11,7 +11,7 @@ import uuid
 
 @pytest_asyncio.fixture(name="generate_test_films")
 def generate_test_films():
-    def inner(count: int):
+    def inner(count: int, description="New World"):
         elastic_data = [
             {
                 "id": str(uuid.uuid4()),
@@ -21,7 +21,7 @@ def generate_test_films():
                     {"id": "d72c15a9-39e3-4dce-91cc-603c7a8eda3d", "name": "Sci-Fi"},
                 ],
                 "title": "The Star",
-                "description": "New World",
+                "description": description,
                 "directors_names": ["Stan"],
                 "actors_names": ["Ann", "Bob"],
                 "writers_names": ["Ben", "Howard"],

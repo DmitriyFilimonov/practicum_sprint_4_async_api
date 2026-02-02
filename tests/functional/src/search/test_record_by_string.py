@@ -9,12 +9,12 @@ import pytest
 @pytest.mark.parametrize(
     "query_data, expected_response",
     [
-        ({"query": "The Star"}, {"status": 200, "length": 60}),
-        ({"query": "Mashed potato"}, {"status": 200, "length": 0}),
+        ({"query": "molestias placeat"}, {"status": 200, "length": 1}),
+        ({"query": "dolor"}, {"status": 200, "length": 1}),
     ],
 )
 @pytest.mark.asyncio(scope="session")
-async def test_es_search(
+async def test_record_by_string(
     generate_test_films,
     make_get_request: Callable[[dict[str, str], str], Awaitable[tuple[int, Any]]],
     es_write_data: Callable[[list[dict]], Awaitable[None]],
@@ -23,7 +23,17 @@ async def test_es_search(
 ):
 
     # 1. Генерируем данные для ES
-    elastic_data = generate_test_films(count=60)
+    elastic_data_1 = generate_test_films(
+        count=1,
+        description="Lorem ipsum dolor sit amet consectetur, adipisicing elit. Maxime porro ipsa quos voluptatum corrupti vero cum in, _ reiciendis repellendus veniam, laudantium voluptatem iste. Adipisci asperiores eius repellendus id.",
+    )
+
+    elastic_data_2 = generate_test_films(
+        count=1,
+        description="Lorem ipsum _ sit amet consectetur, adipisicing elit. Maxime porro ipsa quos voluptatum corrupti vero cum in, molestias placeat reiciendis repellendus veniam, laudantium voluptatem iste. Adipisci asperiores eius repellendus id.",
+    )
+
+    elastic_data = elastic_data_1 + elastic_data_2
 
     bulk_query: list[dict] = []
     for row in elastic_data:
