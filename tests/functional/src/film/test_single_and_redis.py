@@ -1,7 +1,27 @@
+from typing import Optional
+from pydantic import BaseModel
+
 from typing import Any, Awaitable, Callable
-import uuid
+
 
 import pytest
+
+
+class FilmDetailResponsePerson(BaseModel):
+    id: str
+    name: str
+
+
+class FilmDetailsResponse(BaseModel):
+    id: str
+    title: str
+    description: Optional[str]
+    directors_names: list[str]
+    actors_names: list[str]
+    writers_names: list[str]
+    directors: list[FilmDetailResponsePerson]
+    actors: list[FilmDetailResponsePerson]
+    writers: list[FilmDetailResponsePerson]
 
 
 @pytest.mark.parametrize(
@@ -69,5 +89,10 @@ async def test_list_and_redis(
     status, body = await make_get_request(query_data, "/api/v1/films/" + uuid)
 
     # 5. Ппроверяем, что данные закешировались в Redis
+
+    expected_film = FilmDetailsResponse(**elastic_data)
+    pydentified_response = FilmDetailsResponse(**body)
+
+    assert pydentified_response == expected_film
 
     assert status == expected_response["status"]
