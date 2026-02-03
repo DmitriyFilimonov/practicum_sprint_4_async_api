@@ -1,0 +1,32 @@
+import pytest
+
+
+@pytest.mark.parametrize(
+    "query_params, expected_status",
+    [
+        ({"genres": ["5d1f42db-3d58-4c58-964a-274a7aecbc62"]}, 200),
+        ({"genres": []}, 200),
+        ({"genres": ["not valid"]}, 422),
+        ({"sort": "not valid"}, 422),
+        ({"sort": "-title"}, 200),
+        ({"sort": "imdb_rating"}, 200),
+        ({"sort": []}, 200),
+        ({"page_number": 1, "page_size": 10}, 200),
+        ({"page_number": 0, "page_size": 10}, 200),
+        ({"page_number": -1, "page_size": 10}, 422),
+        ({"page_number": 1, "page_size": 0}, 422),
+        ({"page_number": 1, "page_size": -5}, 422),
+        ({"page_number": "not a number", "page_size": 10}, 422),
+        (
+            {
+                "not_existed_parameter": "any value",
+                "another_not_existed_parameter": 100500,
+            },
+            200,
+        ),
+    ],
+)
+@pytest.mark.asyncio(scope="session")
+async def test_list_query_validation(make_get_request, query_params, expected_status):
+    status, _ = await make_get_request(query_params, "/api/v1/films")
+    assert status == expected_status

@@ -1,3 +1,4 @@
+from enum import Enum
 from pydantic import BaseModel
 from typing import Optional
 
@@ -24,3 +25,15 @@ class Film(BaseModel):
     writers: list[FilmPerson]
     imdb_rating: Optional[float]
     genres: list[FilmGenre]
+
+
+class FilmSortableFields(str, Enum):
+    rating_asc = "imdb_rating"
+    rating_desc = "-imdb_rating"
+    title_asc = "title"
+    title_desc = "-title"
+
+
+class FilmDocSortableFields(str, Enum):
+    imdb_rating = "imdb_rating"
+    title = "title.raw"

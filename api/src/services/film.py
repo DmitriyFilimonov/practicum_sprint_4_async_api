@@ -8,7 +8,7 @@ from fastapi import Depends
 from src.models.sort import map_sorting
 from src.db.elastic import ElasticWrapper, get_elastic
 from src.db.cache import Cache, get_cache
-from src.models.film import Film
+from src.models.film import Film, FilmDocSortableFields, FilmSortableFields
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
@@ -53,7 +53,7 @@ class FilmService:
         self,
         genres: Optional[list[UUID]] = None,
         exclude_id: Optional[str] = None,
-        sort: Optional[str] = None,
+        sort: Optional[FilmSortableFields] = None,
         offset: int = 0,
         limit: int = 100,
         query: Optional[str] = None,
@@ -103,7 +103,7 @@ class FilmService:
         genres: Optional[list[UUID]] = None,
         query: Optional[str] = None,
         exclude_id: Optional[str] = None,
-        sort: Optional[str] = None,
+        sort: Optional[FilmSortableFields] = None,
         offset: int = 0,
         limit: int = 100,
         id: Optional[list[str]] = None,
@@ -153,7 +153,7 @@ class FilmService:
             if must_not:
                 body["query"]["bool"]["must_not"] = must_not
 
-        mapped_sorting = map_sorting(sort)
+        mapped_sorting = map_sorting(sort=sort, sortable_fields=FilmDocSortableFields)
 
         if mapped_sorting:
             sort_field, order = mapped_sorting
@@ -178,7 +178,7 @@ class FilmService:
     ):
         await self.cache.set_value_by_dict_key(
             key_raw={
-                "genres": genres,
+                "genres": [str(g) for g in genres] if genres else None,
                 "exclude_id": exclude_id,
                 "sort": sort,
                 "offset": offset,
@@ -194,7 +194,7 @@ class FilmService:
         self,
         genres: Optional[list[UUID]] = None,
         exclude_id: Optional[str] = None,
-        sort: Optional[str] = None,
+        sort: Optional[FilmSortableFields] = None,
         offset: int = 0,
         limit: int = 100,
         query: Optional[str] = None,
@@ -202,7 +202,6 @@ class FilmService:
     ):
         films_list_slice = await self.cache.get_list_from_cache(
             key_raw={
-                # UUID не сериализуется в JSON?
                 "genres": [str(g) for g in genres] if genres else None,
                 "exclude_id": exclude_id,
                 "sort": sort,

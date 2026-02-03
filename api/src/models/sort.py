@@ -1,15 +1,17 @@
 from typing import Optional
+from enum import Enum
+from src.models.film import FilmSortableFields
 
 
-def map_sorting(sort: Optional[str]):
+def map_sorting(sort: Optional[FilmSortableFields], sortable_fields: Enum):
     if not sort:
         return None
 
     field = sort
 
     if sort.startswith("-"):
-        field = sort[1:]
+        field = sortable_fields[sort[1:]]
 
         return field, "desc"
 
-    return field, "asc"
+    return sortable_fields[field], "asc"
