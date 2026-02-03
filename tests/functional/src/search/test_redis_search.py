@@ -4,10 +4,6 @@ import uuid
 import pytest
 
 
-#  Название теста должно начинаться со слова `test_`
-#  Любой тест с асинхронными вызовами нужно оборачивать декоратором `pytest.mark.asyncio`, который следит за запуском и работой цикла событий.
-
-
 @pytest.mark.parametrize(
     "query_data, expected_response",
     [

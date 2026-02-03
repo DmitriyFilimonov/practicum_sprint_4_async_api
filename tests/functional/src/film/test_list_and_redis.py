@@ -26,7 +26,7 @@ import pytest
     ],
 )
 @pytest.mark.asyncio(scope="session")
-async def test_redis(
+async def test_list_and_redis(
     es_clear_index: Callable[[None], Awaitable[None]],
     make_get_request: Callable[[dict[str, str], str], Awaitable[tuple[int, Any]]],
     es_write_data: Callable[[list[dict]], Awaitable[None]],
