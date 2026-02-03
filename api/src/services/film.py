@@ -178,7 +178,7 @@ class FilmService:
     ):
         await self.cache.set_value_by_dict_key(
             key_raw={
-                "genres": genres,
+                "genres": [str(g) for g in genres] if genres else None,
                 "exclude_id": exclude_id,
                 "sort": sort,
                 "offset": offset,
@@ -202,7 +202,6 @@ class FilmService:
     ):
         films_list_slice = await self.cache.get_list_from_cache(
             key_raw={
-                # UUID не сериализуется в JSON?
                 "genres": [str(g) for g in genres] if genres else None,
                 "exclude_id": exclude_id,
                 "sort": sort,
