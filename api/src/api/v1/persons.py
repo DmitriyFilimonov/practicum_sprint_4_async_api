@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
@@ -21,7 +22,7 @@ class PersonDetailsResponseItem(BaseModel):
 
 
 @router.get("/search", response_model=list[PersonDetailsResponseItem])
-async def film_details(
+async def person_details(
     query: str = None,
     pagination: Pagination = Depends(get_pagination),
     person_service: PersonService = Depends(get_person_service),
@@ -44,13 +45,13 @@ async def film_details(
 
 
 @router.get("/{id}", response_model=PersonDetailsResponseItem)
-async def film_details(
-    id: str, person_service: PersonService = Depends(get_person_service)
+async def person_details(
+    id: UUID, person_service: PersonService = Depends(get_person_service)
 ) -> PersonDetailsResponseItem:
     person = await person_service.get_person(id=id)
 
     if not person:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="film not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="person not found")
 
     return PersonDetailsResponseItem(
         uuid=person.id,
@@ -69,7 +70,7 @@ class PersonFilmsResponseItem(BaseModel):
 
 @router.get("/{id}/films", response_model=list[PersonFilmsResponseItem])
 async def person_films(
-    id: str,
+    id: UUID,
     pagination: Pagination = Depends(get_pagination),
     person_service: PersonService = Depends(get_person_service),
     films_service: FilmService = Depends(get_film_service),

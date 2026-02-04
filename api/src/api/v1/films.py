@@ -17,7 +17,7 @@ class FilmListResponseItem(BaseModel):
 
 @router.get("/search", response_model=list[FilmListResponseItem])
 async def similar_films(
-    query: Optional[str] = None,
+    query: str = None,
     pagination: Pagination = Depends(get_pagination),
     film_service: FilmService = Depends(get_film_service),
 ):
@@ -55,7 +55,7 @@ class FilmDetailsResponse(BaseModel):
 
 @router.get("/{film_id}", response_model=FilmDetailsResponse)
 async def film_details(
-    film_id: str, film_service: FilmService = Depends(get_film_service)
+    film_id: UUID, film_service: FilmService = Depends(get_film_service)
 ) -> FilmDetailsResponse:
     film = await film_service.get_by_id(film_id)
     if not film:
@@ -78,7 +78,7 @@ async def film_details(
 
 @router.get("/{film_id}/similar", response_model=list[FilmListResponseItem])
 async def similar_films(
-    film_id: str,
+    film_id: UUID,
     sort: Optional[str] = Query(
         default=None,
     ),

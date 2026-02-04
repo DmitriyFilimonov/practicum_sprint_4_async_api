@@ -21,7 +21,7 @@ class FilmService:
         self.elastic = elastic
 
     # get_by_id возвращает объект фильма. Он опционален, так как фильм может отсутствовать в базе
-    async def get_by_id(self, film_id: str) -> Optional[Film]:
+    async def get_by_id(self, film_id: UUID) -> Optional[Film]:
         film = await self._film_from_cache(film_id)
 
         if not film:
@@ -34,13 +34,13 @@ class FilmService:
 
         return film
 
-    async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
+    async def _get_film_from_elastic(self, film_id: UUID) -> Optional[Film]:
         return await self.elastic.get_doc_by_id(
-            index=MOVIES_ES_INDEX, id=film_id, model=Film
+            index=MOVIES_ES_INDEX, id=str(film_id), model=Film
         )
 
-    async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-        film = await self.cache.get_single_value(key=film_id, model=Film)
+    async def _film_from_cache(self, film_id: UUID) -> Optional[Film]:
+        film = await self.cache.get_single_value(key=str(film_id), model=Film)
 
         return film
 
