@@ -1,3 +1,4 @@
+from tests.functional.settings import settings
 import aiohttp
 from elasticsearch.helpers import async_bulk
 
@@ -5,7 +6,7 @@ from elasticsearch import AsyncElasticsearch
 import pytest
 import pytest_asyncio
 
-from tests.functional.settings import settings
+
 import uuid
 
 
@@ -77,12 +78,10 @@ async def es_client():
 
 @pytest_asyncio.fixture(name="es_write_data")
 def es_write_data(es_client: AsyncElasticsearch):
-    async def inner(data: list[dict]):
-        if await es_client.indices.exists(index=settings.elastic_index):
-            await es_client.indices.delete(index=settings.elastic_index)
-        await es_client.indices.create(
-            index=settings.elastic_index, **settings.elastic_index_mapping
-        )
+    async def inner(data: list[dict], elastic_index: str, elastic_index_mapping: dict):
+        if await es_client.indices.exists(index=elastic_index):
+            await es_client.indices.delete(index=elastic_index)
+        await es_client.indices.create(index=elastic_index, **elastic_index_mapping)
 
         updated, errors = await async_bulk(client=es_client, actions=data, refresh=True)
 
@@ -93,10 +92,12 @@ def es_write_data(es_client: AsyncElasticsearch):
 
 
 @pytest_asyncio.fixture(name="es_clear_index")
-def es_clear_index(es_client: AsyncElasticsearch):
-    async def inner():
+def es_clear_index(
+    es_client: AsyncElasticsearch,
+):
+    async def inner(elastic_index: str):
         await es_client.delete_by_query(
-            index=settings.elastic_index,
+            index=elastic_index,
             body={"query": {"match_all": {}}},
             refresh=True,
         )

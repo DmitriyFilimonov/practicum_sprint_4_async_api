@@ -67,7 +67,7 @@ class PersonFilmsResponseItem(BaseModel):
     imdb_rating: float
 
 
-@router.get("/{id}/film", response_model=list[PersonFilmsResponseItem])
+@router.get("/{id}/films", response_model=list[PersonFilmsResponseItem])
 async def person_films(
     id: str,
     pagination: Pagination = Depends(get_pagination),

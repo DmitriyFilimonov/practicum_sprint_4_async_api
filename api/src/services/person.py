@@ -64,11 +64,14 @@ class PersonService:
             query=query, offset=offset, limit=limit
         )
 
-        await self._put_persons_list_to_cache(
-            query=query, limit=limit, offset=offset, persons_list=persons
-        )
+        if persons:
+            await self._put_persons_list_to_cache(
+                query=query, limit=limit, offset=offset, persons_list=persons
+            )
 
-        return persons
+            return persons
+
+        return []
 
     async def _get_persons_from_cache(
         self,
