@@ -1,5 +1,6 @@
 import json
 from typing import Optional
+from uuid import UUID
 from src.db.cache import Cache, get_cache
 from fastapi import Depends
 from functools import lru_cache
@@ -18,7 +19,7 @@ class PersonService:
         self.cache = cache
         self.elastic = elastic
 
-    async def get_person(self, id: str):
+    async def get_person(self, id: UUID):
         person = await self._get_person_from_cache(id=id)
 
         if person:
@@ -30,9 +31,9 @@ class PersonService:
 
         return person
 
-    async def _get_person_from_elastic(self, id: str):
+    async def _get_person_from_elastic(self, id: UUID):
         return await self.elastic.get_doc_by_id(
-            index=PERSONS_ES_INDEX, id=id, model=Person
+            index=PERSONS_ES_INDEX, id=str(id), model=Person
         )
 
     async def _put_person_to_cache(self, person: Person):
@@ -42,8 +43,8 @@ class PersonService:
             expire_time=PERSON_CACHE_EXPIRE_IN_SECONDS,
         )
 
-    async def _get_person_from_cache(self, id: str):
-        person = await self.cache.get_single_value(key=id, model=Person)
+    async def _get_person_from_cache(self, id: UUID):
+        person = await self.cache.get_single_value(key=str(id), model=Person)
 
         return person
 
@@ -64,11 +65,14 @@ class PersonService:
             query=query, offset=offset, limit=limit
         )
 
-        await self._put_persons_list_to_cache(
-            query=query, limit=limit, offset=offset, persons_list=persons
-        )
+        if persons:
+            await self._put_persons_list_to_cache(
+                query=query, limit=limit, offset=offset, persons_list=persons
+            )
 
-        return persons
+            return persons
+
+        return []
 
     async def _get_persons_from_cache(
         self,

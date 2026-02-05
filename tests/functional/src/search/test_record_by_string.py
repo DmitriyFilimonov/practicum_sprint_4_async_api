@@ -1,3 +1,4 @@
+from tests.functional.settings import settings
 from typing import Any, Awaitable, Callable
 import pytest
 
@@ -17,7 +18,7 @@ import pytest
 async def test_record_by_string(
     generate_test_films,
     make_get_request: Callable[[dict[str, str], str], Awaitable[tuple[int, Any]]],
-    es_write_data: Callable[[list[dict]], Awaitable[None]],
+    es_write_data: Callable[[list[dict], str, dict], Awaitable[None]],
     query_data: dict[str, str],
     expected_response: dict[str, int],
 ):
@@ -37,13 +38,15 @@ async def test_record_by_string(
 
     bulk_query: list[dict] = []
     for row in elastic_data:
-        data = {"_index": "movies", "_id": row["id"]}
+        data = {"_index": settings.elastic_films_index, "_id": row["id"]}
         data.update({"_source": row})
         bulk_query.append(data)
 
     # 2. Загружаем данные в ES
 
-    await es_write_data(bulk_query)
+    await es_write_data(
+        bulk_query, settings.elastic_films_index, settings.elastic_films_index_mapping
+    )
 
     # 3. Запрашиваем данные из ES по API
 

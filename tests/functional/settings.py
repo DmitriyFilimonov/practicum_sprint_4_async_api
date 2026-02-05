@@ -13,8 +13,8 @@ class Settings(BaseSettings):
     elastic_host: str
     elastic_port: str
 
-    elastic_index: str
-    elastic_index_mapping: dict = {
+    elastic_films_index: str = "movies"
+    elastic_films_index_mapping: dict = {
         "settings": {
             "refresh_interval": "1s",
             "analysis": {
@@ -87,6 +87,57 @@ class Settings(BaseSettings):
                     "properties": {
                         "id": {"type": "keyword"},
                         "name": {"type": "text", "analyzer": "ru_en"},
+                    },
+                },
+            },
+        },
+    }
+
+    elastic_persons_index: str = "persons"
+    elastic_persons_index_mapping: dict = {
+        "settings": {
+            "refresh_interval": "1s",
+            "analysis": {
+                "filter": {
+                    "english_stop": {"type": "stop", "stopwords": "_english_"},
+                    "english_stemmer": {"type": "stemmer", "language": "english"},
+                    "english_possessive_stemmer": {
+                        "type": "stemmer",
+                        "language": "possessive_english",
+                    },
+                    "russian_stop": {"type": "stop", "stopwords": "_russian_"},
+                    "russian_stemmer": {"type": "stemmer", "language": "russian"},
+                },
+                "analyzer": {
+                    "ru_en": {
+                        "tokenizer": "standard",
+                        "filter": [
+                            "lowercase",
+                            "english_stop",
+                            "english_stemmer",
+                            "english_possessive_stemmer",
+                            "russian_stop",
+                            "russian_stemmer",
+                        ],
+                    }
+                },
+            },
+        },
+        "mappings": {
+            "dynamic": "strict",
+            "properties": {
+                "id": {"type": "keyword"},
+                "name": {
+                    "type": "text",
+                    "analyzer": "ru_en",
+                    "fields": {"raw": {"type": "keyword"}},
+                },
+                "films": {
+                    "type": "nested",
+                    "dynamic": "strict",
+                    "properties": {
+                        "id": {"type": "keyword"},
+                        "roles": {"type": "text", "analyzer": "ru_en"},
                     },
                 },
             },
