@@ -64,7 +64,7 @@ class GenreService:
 
             return genres_list_es
 
-        return None
+        return []
 
     async def _put_genres_to_cache(
         self, genres_list: list[Genre], offset: int = 0, limit: int = 100
