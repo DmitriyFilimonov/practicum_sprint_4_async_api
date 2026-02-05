@@ -1,7 +1,9 @@
+from http import HTTPStatus
+from uuid import UUID
 from src.models.pagination import Pagination, get_pagination
 
 from typing import Optional
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from src.services.genre import GenreService, get_genre_service
@@ -17,10 +19,13 @@ class GenresListResponseItem(BaseModel):
 
 @router.get("/{id}", response_model=GenresListResponseItem)
 async def genre(
-    id: str,
+    id: UUID,
     genre_service: GenreService = Depends(get_genre_service),
 ) -> GenresListResponseItem:
     genre = await genre_service.get_genre(id=id)
+
+    if not genre:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="genre not found")
 
     return genre
 

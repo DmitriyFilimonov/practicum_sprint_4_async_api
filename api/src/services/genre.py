@@ -1,5 +1,6 @@
 import json
 from functools import lru_cache
+from uuid import UUID
 from fastapi import Depends
 
 from src.db.elastic import ElasticWrapper, get_elastic
@@ -16,7 +17,7 @@ class GenreService:
         self.cache = cache
         self.elastic = elastic
 
-    async def get_genre(self, id: int):
+    async def get_genre(self, id: UUID):
         genre = await self._get_genre_from_cache(id)
 
         if genre:
@@ -34,13 +35,13 @@ class GenreService:
             key=genre.id, value=genre.json(), expire_time=GANRES_CACHE_EXPIRE_IN_SECONDS
         )
 
-    async def _get_genre_from_elastic(self, id: str):
+    async def _get_genre_from_elastic(self, id: UUID):
         return await self.elastic.get_doc_by_id(
-            index=GENRES_ES_INDEX, id=id, model=Genre
+            index=GENRES_ES_INDEX, id=str(id), model=Genre
         )
 
-    async def _get_genre_from_cache(self, id: int):
-        genre = await self.cache.get_single_value(key=id, model=Genre)
+    async def _get_genre_from_cache(self, id: UUID):
+        genre = await self.cache.get_single_value(key=str(id), model=Genre)
 
         return genre
 
