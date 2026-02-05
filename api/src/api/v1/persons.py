@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from src.api.v1.models import NotFoundRes
 from src.services.person import PersonService, get_person_service
 from src.services.film import FilmService, get_film_service
 from src.models.pagination import Pagination, get_pagination
@@ -45,7 +46,11 @@ async def person_details(
     ]
 
 
-@router.get("/{id}", response_model=PersonDetailsResponseItem)
+@router.get(
+    "/{id}",
+    response_model=PersonDetailsResponseItem,
+    responses={404: {"model": NotFoundRes}},
+)
 async def person_details(
     id: UUID, person_service: PersonService = Depends(get_person_service)
 ) -> PersonDetailsResponseItem:

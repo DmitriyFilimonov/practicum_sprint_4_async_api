@@ -1,5 +1,6 @@
 from http import HTTPStatus
 from uuid import UUID
+from src.api.v1.models import NotFoundRes
 from src.models.pagination import Pagination, get_pagination
 
 from typing import Optional
@@ -17,7 +18,11 @@ class GenresListResponseItem(BaseModel):
     description: Optional[str]
 
 
-@router.get("/{id}", response_model=GenresListResponseItem)
+@router.get(
+    "/{id}",
+    response_model=GenresListResponseItem,
+    responses={404: {"model": NotFoundRes}},
+)
 async def genre(
     id: UUID,
     genre_service: GenreService = Depends(get_genre_service),

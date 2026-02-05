@@ -3,6 +3,7 @@ from http import HTTPStatus
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
+from src.api.v1.models import NotFoundRes
 from src.models.pagination import Pagination, get_pagination
 from src.services.film import FilmService, get_film_service, FilmSortableFields
 
@@ -53,11 +54,16 @@ class FilmDetailsResponse(BaseModel):
     writers: list[FilmDetailResponsePerson]
 
 
-@router.get("/{film_id}", response_model=FilmDetailsResponse)
+@router.get(
+    "/{film_id}",
+    response_model=FilmDetailsResponse,
+    responses={404: {"model": NotFoundRes}},
+)
 async def film_details(
     film_id: UUID, film_service: FilmService = Depends(get_film_service)
 ) -> FilmDetailsResponse:
     film = await film_service.get_by_id(film_id)
+
     if not film:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="film not found")
 
