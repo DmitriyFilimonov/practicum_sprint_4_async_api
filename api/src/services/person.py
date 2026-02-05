@@ -27,9 +27,12 @@ class PersonService:
 
         person = await self._get_person_from_elastic(id=id)
 
-        await self._put_person_to_cache(person)
+        if person:
+            await self._put_person_to_cache(person)
 
-        return person
+            return person
+
+        return None
 
     async def _get_person_from_elastic(self, id: UUID):
         return await self.elastic.get_doc_by_id(

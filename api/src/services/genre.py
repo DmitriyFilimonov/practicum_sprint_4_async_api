@@ -30,6 +30,8 @@ class GenreService:
 
             return genre
 
+        return None
+
     async def _put_genre_to_cache(self, genre: Genre):
         await self.cache.set_value(
             key=genre.id, value=genre.json(), expire_time=GANRES_CACHE_EXPIRE_IN_SECONDS
