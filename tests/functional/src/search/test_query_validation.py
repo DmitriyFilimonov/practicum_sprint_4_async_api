@@ -9,6 +9,7 @@ import pytest
         ({"page_number": -1, "page_size": 10}, 422),
         ({"page_number": 1, "page_size": 0}, 422),
         ({"page_number": 1, "page_size": -5}, 422),
+        ({"page_number": 1, "page_size": 5000}, 422),
         ({"page_number": "not a number", "page_size": 10}, 422),
         (
             {
