@@ -1,13 +1,17 @@
 import json
 from typing import Optional
 from uuid import UUID
+
+from src.db.domain_storages.elastic.person import (
+    AbstractPersonStorage,
+    get_person_storage,
+)
+
 from src.db.cache import Cache, get_cache
 from fastapi import Depends
 from functools import lru_cache
-from elasticsearch import AsyncElasticsearch, NotFoundError
 
 from src.models.person import Person
-from src.db.elastic import get_elastic, ElasticWrapper
 
 PERSON_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
@@ -15,9 +19,9 @@ PERSONS_ES_INDEX = "persons"
 
 
 class PersonService:
-    def __init__(self, cache: Cache, elastic: ElasticWrapper):
+    def __init__(self, cache: Cache, storage: AbstractPersonStorage):
         self.cache = cache
-        self.elastic = elastic
+        self.storage = storage
 
     async def get_person(self, id: UUID):
         person = await self._get_person_from_cache(id=id)
@@ -25,7 +29,7 @@ class PersonService:
         if person:
             return person
 
-        person = await self._get_person_from_elastic(id=id)
+        person = await self._get_person_from_storage(id=id)
 
         if person:
             await self._put_person_to_cache(person)
@@ -34,10 +38,8 @@ class PersonService:
 
         return None
 
-    async def _get_person_from_elastic(self, id: UUID):
-        return await self.elastic.get_doc_by_id(
-            index=PERSONS_ES_INDEX, id=str(id), model=Person
-        )
+    async def _get_person_from_storage(self, id: UUID):
+        return await self.storage.get_by_id(id=str(id))
 
     async def _put_person_to_cache(self, person: Person):
         await self.cache.set_value(
@@ -64,7 +66,7 @@ class PersonService:
         if persons:
             return persons
 
-        persons = await self._get_persons_list_from_elastic(
+        persons = await self._get_persons_list_from_storage(
             query=query, offset=offset, limit=limit
         )
 
@@ -88,40 +90,14 @@ class PersonService:
             model=Person,
         )
 
-    async def _get_persons_list_from_elastic(
+    async def _get_persons_list_from_storage(
         self,
         query: Optional[str] = None,
         offset: int = 0,
         limit: int = 100,
     ):
-        body = {
-            "from": offset,
-            "size": limit,
-        }
 
-        must = []
-
-        if query:
-            must.append(
-                {
-                    "multi_match": {
-                        "query": query,
-                        "fields": ["name"],
-                        "type": "best_fields",
-                        "operator": "and",
-                    }
-                }
-            )
-
-        if must:
-            body["query"] = {"bool": {}}
-
-            if must:
-                body["query"]["bool"]["must"] = must
-
-        return await self.elastic.search(
-            index=PERSONS_ES_INDEX, body=body, model=Person
-        )
+        return await self.storage.get_list(query=query, offset=offset, limit=limit)
 
     async def _put_persons_list_to_cache(
         self,
@@ -146,6 +122,6 @@ class PersonService:
 @lru_cache()
 def get_person_service(
     cache: Cache = Depends(get_cache),
-    elastic: ElasticWrapper = Depends(get_elastic),
+    storage: AbstractPersonStorage = Depends(get_person_storage),
 ) -> PersonService:
-    return PersonService(cache, elastic)
+    return PersonService(cache=cache, storage=storage)

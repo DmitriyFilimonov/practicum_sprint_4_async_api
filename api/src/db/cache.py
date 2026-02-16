@@ -29,7 +29,7 @@ class CacheDB(abc.ABC):
 class RedisCahce(CacheDB):
     def __init__(self) -> None:
         self.redis = Redis(
-            host=config.settings.redis_host, port=config.settings.redis_port
+            host=config.settings.redis_host, port=int(config.settings.redis_port)
         )
 
     async def instantiate_cache_db(self):

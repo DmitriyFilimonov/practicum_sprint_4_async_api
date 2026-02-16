@@ -3,7 +3,7 @@ from functools import lru_cache
 from uuid import UUID
 from fastapi import Depends
 
-from src.db.elastic import ElasticWrapper, get_elastic
+from src.db.domain_storages.elastic.genre import AbstractGenreStorage, get_genre_storage
 from src.db.cache import Cache, get_cache
 from src.models.genre import Genre
 
@@ -13,9 +13,9 @@ GENRES_ES_INDEX = "genres"
 
 
 class GenreService:
-    def __init__(self, cache: Cache, elastic: ElasticWrapper):
+    def __init__(self, cache: Cache, storage: AbstractGenreStorage):
         self.cache = cache
-        self.elastic = elastic
+        self.storage = storage
 
     async def get_genre(self, id: UUID):
         genre = await self._get_genre_from_cache(id)
@@ -23,7 +23,7 @@ class GenreService:
         if genre:
             return genre
 
-        genre = await self._get_genre_from_elastic(id)
+        genre = await self._get_genre_from_storage(id)
 
         if genre:
             await self._put_genre_to_cache(genre)
@@ -37,10 +37,8 @@ class GenreService:
             key=genre.id, value=genre.json(), expire_time=GANRES_CACHE_EXPIRE_IN_SECONDS
         )
 
-    async def _get_genre_from_elastic(self, id: UUID):
-        return await self.elastic.get_doc_by_id(
-            index=GENRES_ES_INDEX, id=str(id), model=Genre
-        )
+    async def _get_genre_from_storage(self, id: UUID):
+        return await self.storage.get_by_id(id=str(id))
 
     async def _get_genre_from_cache(self, id: UUID):
         genre = await self.cache.get_single_value(key=str(id), model=Genre)
@@ -55,7 +53,7 @@ class GenreService:
         if genres_list_cache:
             return genres_list_cache
 
-        genres_list_es = await self._get_genres_list_from_elastic(
+        genres_list_es = await self._get_genres_list_from_storage(
             offset=offset, limit=limit
         )
 
@@ -89,17 +87,15 @@ class GenreService:
             model=Genre,
         )
 
-    async def _get_genres_list_from_elastic(
+    async def _get_genres_list_from_storage(
         self, offset: int = 0, limit: int = 100
-    ) -> list[Genre]:
-        return await self.elastic.search(
-            index=GENRES_ES_INDEX, body={"from": offset, "size": limit}, model=Genre
-        )
+    ) -> list[Genre] | None:
+        return await self.storage.get_list(offset=offset, limit=limit)
 
 
 @lru_cache()
 def get_genre_service(
     cache: Cache = Depends(get_cache),
-    elastic: ElasticWrapper = Depends(get_elastic),
+    storage: AbstractGenreStorage = Depends(get_genre_storage),
 ) -> GenreService:
-    return GenreService(cache, elastic)
+    return GenreService(cache=cache, storage=storage)

@@ -5,10 +5,13 @@ from uuid import UUID
 
 from fastapi import Depends
 
-from src.models.sort import map_sorting
-from src.db.elastic import ElasticWrapper, get_elastic
+from src.db.domain_storages.elastic.film import (
+    AbstractFilmStorage,
+    get_film_storage,
+)
+
 from src.db.cache import Cache, get_cache
-from src.models.film import Film, FilmDocSortableFields, FilmSortableFields
+from src.models.film import Film, FilmSortableFields
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
@@ -16,9 +19,9 @@ MOVIES_ES_INDEX = "movies"
 
 
 class FilmService:
-    def __init__(self, cache: Cache, elastic: ElasticWrapper):
+    def __init__(self, cache: Cache, storage: AbstractFilmStorage):
         self.cache = cache
-        self.elastic = elastic
+        self.storage = storage
 
     # get_by_id возвращает объект фильма. Он опционален, так как фильм может отсутствовать в базе
     async def get_by_id(self, film_id: UUID) -> Optional[Film]:
@@ -35,9 +38,7 @@ class FilmService:
         return film
 
     async def _get_film_from_elastic(self, film_id: UUID) -> Optional[Film]:
-        return await self.elastic.get_doc_by_id(
-            index=MOVIES_ES_INDEX, id=str(film_id), model=Film
-        )
+        return await self.storage.get_by_id(id=str(film_id))
 
     async def _film_from_cache(self, film_id: UUID) -> Optional[Film]:
         film = await self.cache.get_single_value(key=str(film_id), model=Film)
@@ -60,11 +61,11 @@ class FilmService:
         id: Optional[list[str]] = None,
     ) -> list[Film]:
         films_list_cache = await self._get_films_list_slice_from_cache(
+            genres=genres,
+            exclude_id=exclude_id,
             sort=sort,
             offset=offset,
             limit=limit,
-            genres=genres,
-            exclude_id=exclude_id,
             query=query,
             id=id,
         )
@@ -108,62 +109,15 @@ class FilmService:
         limit: int = 100,
         id: Optional[list[str]] = None,
     ):
-        body = {
-            "from": offset,
-            "size": limit,
-        }
-
-        must = []
-        must_not = []
-
-        if id and len(id):
-            must.append({"terms": {"id": id}})
-
-        if query:
-            must.append(
-                {
-                    "multi_match": {
-                        "query": query,
-                        "fields": ["title^3", "description"],
-                        "type": "best_fields",
-                        "operator": "or",
-                    }
-                }
-            )
-
-        if genres:
-            must.append(
-                {
-                    "nested": {
-                        "path": "genres",
-                        "query": {"terms": {"genres.id": [str(g) for g in genres]}},
-                    }
-                }
-            )
-
-        if exclude_id:
-            must_not.append({"term": {"id": exclude_id}})
-
-        if must or must_not:
-            body["query"] = {"bool": {}}
-
-            if must:
-                body["query"]["bool"]["must"] = must
-
-            if must_not:
-                body["query"]["bool"]["must_not"] = must_not
-
-        mapped_sorting = map_sorting(sort=sort, sortable_fields=FilmDocSortableFields)
-
-        if mapped_sorting:
-            sort_field, order = mapped_sorting
-            body["sort"] = {sort_field: {"order": order}}
-
-        films_list_from_elastic = await self.elastic.search(
-            index=MOVIES_ES_INDEX, body=body, model=Film
+        return await self.storage.get_list(
+            sort=sort,
+            offset=offset,
+            limit=limit,
+            genres=genres,
+            query=query,
+            exclude_id=exclude_id,
+            id=id,
         )
-
-        return films_list_from_elastic
 
     async def _put_films_list_slice_to_cache(
         self,
@@ -219,6 +173,6 @@ class FilmService:
 @lru_cache()
 def get_film_service(
     cache: Cache = Depends(get_cache),
-    elastic: ElasticWrapper = Depends(get_elastic),
+    storage: AbstractFilmStorage = Depends(get_film_storage),
 ) -> FilmService:
-    return FilmService(cache, elastic)
+    return FilmService(cache=cache, storage=storage)
