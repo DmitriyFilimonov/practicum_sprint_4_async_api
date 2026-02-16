@@ -28,7 +28,7 @@ async def lifespan(_: FastAPI):
     elastic.elastic_wrapper = elastic.ElasticWrapper(
         elastic=AsyncElasticsearch(
             hosts=[
-                f"{config.ELASTIC_SCHEMA}{config.settings.elastic_host}:{config.settings.elastic_port}"
+                f"{config.settings.elastic_scheme}{config.settings.elastic_host}:{config.settings.elastic_port}"
             ]
         )
     )
