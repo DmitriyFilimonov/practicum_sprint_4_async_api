@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from typing import Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -25,7 +24,7 @@ class PersonDetailsResponseItem(BaseModel):
 
 @router.get("/search", response_model=list[PersonDetailsResponseItem])
 async def person_details(
-    query: Optional[str] = Query(default=None),
+    query: str | None = Query(default=None),
     pagination: Pagination = Depends(get_pagination),
     person_service: PersonService = Depends(get_person_service),
 ) -> list[PersonDetailsResponseItem]:

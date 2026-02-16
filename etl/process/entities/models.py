@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Optional
 from zoneinfo import ZoneInfo
 from datetime import datetime
 from uuid import UUID, uuid4
@@ -97,7 +96,7 @@ class FilmWorkESDocRaw(FilmWorkESDoc):
 class GenreFilmwork:
     id: str
     name: str
-    description: Optional[str]
+    description: str | None
     modified: datetime = field(default_factory=datetime.now)
 
     def __post_init__(self):
@@ -111,7 +110,7 @@ class GenreFilmwork:
 class GenreFilmworkESDoc:
     id: str
     name: str
-    description: Optional[str]
+    description: str | None
 
 
 @dataclass

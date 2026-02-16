@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, TypeVar
+from typing import Any, Dict, TypeVar
 from elasticsearch import AsyncElasticsearch, NotFoundError
 
 T = TypeVar("T")
@@ -29,9 +29,7 @@ class ElasticWrapper:
         await self.elastic.close()
 
 
-
-
-elastic_wrapper: Optional[ElasticWrapper] = None
+elastic_wrapper: ElasticWrapper | None = None
 
 
 # Функция понадобится при внедрении зависимостей

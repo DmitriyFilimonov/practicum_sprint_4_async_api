@@ -1,7 +1,7 @@
 import abc
 import json
 from src.core import config
-from typing import Any, Type, TypeVar, Optional, List
+from typing import Any, Type, TypeVar, List
 from redis.asyncio import Redis
 
 
@@ -12,7 +12,7 @@ class CacheDB(abc.ABC):
 
     @abc.abstractmethod
     async def set_value(
-        self, key: str, value: Any, expire_time: Optional[int]
+        self, key: str, value: Any, expire_time: int | None
     ) -> None: ...
 
     @abc.abstractmethod
@@ -37,7 +37,7 @@ class RedisCahce(CacheDB):
 
         return self.redis
 
-    async def set_value(self, key: str, value: Any, expire_time: Optional[int]) -> None:
+    async def set_value(self, key: str, value: Any, expire_time: int | None) -> None:
         await self.redis.set(key, value, expire_time)
 
     async def get_value(self, key: str) -> str | None:
@@ -67,17 +67,17 @@ class Cache:
     async def init(self):
         return await self.cache_db.instantiate_cache_db()
 
-    async def set_value(self, key: str, value: Any, expire_time: Optional[int]):
+    async def set_value(self, key: str, value: Any, expire_time: int | None):
         await self.cache_db.set_value(key=key, value=value, expire_time=expire_time)
 
     async def set_value_by_dict_key(
-        self, key_raw: dict, value: Any, expire_time: Optional[int]
+        self, key_raw: dict, value: Any, expire_time: int | None
     ):
         key = self.cache_db.create_key(key_raw)
 
         await self.set_value(key=key, value=value, expire_time=expire_time)
 
-    async def get_single_value(self, key: str, model: Type[T]) -> Optional[T]:
+    async def get_single_value(self, key: str, model: Type[T]) -> T | None:
         result = await self.cache_db.get_value(key)
 
         if result:
@@ -89,7 +89,7 @@ class Cache:
         self,
         key_raw: dict,
         model: Type[T],
-    ) -> Optional[List[T]]:
+    ) -> List[T] | None:
         key = self.cache_db.create_key(key_raw)
 
         result_raw = await self.cache_db.get_value(key)

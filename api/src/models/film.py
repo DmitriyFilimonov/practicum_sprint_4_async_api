@@ -1,6 +1,5 @@
 from enum import Enum
 from pydantic import BaseModel
-from typing import Optional
 
 
 class FilmPerson(BaseModel):
@@ -16,14 +15,14 @@ class FilmGenre(BaseModel):
 class Film(BaseModel):
     id: str
     title: str
-    description: Optional[str]
+    description: str | None
     directors_names: list[str]
     actors_names: list[str]
     writers_names: list[str]
     directors: list[FilmPerson]
     actors: list[FilmPerson]
     writers: list[FilmPerson]
-    imdb_rating: Optional[float]
+    imdb_rating: float | None
     genres: list[FilmGenre]
 
 

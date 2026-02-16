@@ -1,6 +1,5 @@
 from tests.functional.settings import settings
 
-from typing import Optional
 from pydantic import BaseModel
 
 from typing import Any, Awaitable, Callable
@@ -17,7 +16,7 @@ class FilmDetailResponsePerson(BaseModel):
 class FilmDetailsResponse(BaseModel):
     id: str
     title: str
-    description: Optional[str]
+    description: str | None
     directors_names: list[str]
     actors_names: list[str]
     writers_names: list[str]

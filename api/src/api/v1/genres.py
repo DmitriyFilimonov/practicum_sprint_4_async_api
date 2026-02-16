@@ -3,7 +3,7 @@ from uuid import UUID
 from src.api.v1.models import NotFoundRes
 from src.models.pagination import Pagination, get_pagination
 
-from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
@@ -15,7 +15,7 @@ router = APIRouter()
 class GenresListResponseItem(BaseModel):
     id: str
     name: str
-    description: Optional[str]
+    description: str | None
 
 
 @router.get(

@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Optional
 
 from fastapi import Depends
 
@@ -18,7 +17,7 @@ class AbstractPersonStorage(ABC):
 
     @abstractmethod
     async def get_list(
-        self, query: Optional[str] = None, offset: int = 0, limit: int = 100
+        self, query: str | None = None, offset: int = 0, limit: int = 100
     ) -> list[Person] | None: ...
 
 
