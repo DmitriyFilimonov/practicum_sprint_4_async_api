@@ -2,7 +2,7 @@ from tests.functional.settings import settings
 
 from pydantic import BaseModel
 
-from typing import Any, Awaitable, Callable, Optional
+from typing import Any, Awaitable, Callable
 
 
 import pytest
@@ -11,7 +11,7 @@ import pytest
 class GenreResponse(BaseModel):
     id: str
     name: str
-    description: Optional[str]
+    description: str | None
 
 
 genre_id = "b780d672-d3cc-4b6c-8439-bcf6333d4223"

@@ -1,4 +1,3 @@
-from typing import Optional
 from http import HTTPStatus
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -13,7 +12,7 @@ router = APIRouter()
 class FilmListResponseItem(BaseModel):
     uuid: str
     title: str
-    imdb_rating: Optional[float]
+    imdb_rating: float | None
 
 
 @router.get("/search", response_model=list[FilmListResponseItem])
@@ -45,7 +44,7 @@ class FilmDetailResponsePerson(BaseModel):
 class FilmDetailsResponse(BaseModel):
     id: str
     title: str
-    description: Optional[str]
+    description: str | None
     directors_names: list[str]
     actors_names: list[str]
     writers_names: list[str]
@@ -85,9 +84,7 @@ async def film_details(
 @router.get("/{film_id}/similar", response_model=list[FilmListResponseItem])
 async def search_films(
     film_id: UUID,
-    sort: Optional[str] = Query(
-        default=None,
-    ),
+    sort: str | None = Query(default=None),
     pagination: Pagination = Depends(get_pagination),
     film_service: FilmService = Depends(get_film_service),
 ):
@@ -116,10 +113,8 @@ async def search_films(
 
 @router.get("/", response_model=list[FilmListResponseItem])
 async def films_list(
-    genres: Optional[list[UUID]] = Query(default=None),
-    sort: Optional[FilmSortableFields] = Query(
-        default=None,
-    ),
+    genres: list[UUID] | None = Query(default=None),
+    sort: FilmSortableFields | None = Query(default=None),
     pagination: Pagination = Depends(get_pagination),
     film_service: FilmService = Depends(get_film_service),
 ) -> list[FilmListResponseItem]:

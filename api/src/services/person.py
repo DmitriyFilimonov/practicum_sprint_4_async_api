@@ -1,5 +1,4 @@
 import json
-from typing import Optional
 from uuid import UUID
 
 from src.db.domain_storages.elastic.person import (
@@ -55,7 +54,7 @@ class PersonService:
 
     async def get_persons_list(
         self,
-        query: Optional[str] = None,
+        query: str | None = None,
         offset: int = 0,
         limit: int = 100,
     ):
@@ -81,7 +80,7 @@ class PersonService:
 
     async def _get_persons_from_cache(
         self,
-        query: Optional[str] = None,
+        query: str | None = None,
         offset: int = 0,
         limit: int = 100,
     ):
@@ -92,7 +91,7 @@ class PersonService:
 
     async def _get_persons_list_from_storage(
         self,
-        query: Optional[str] = None,
+        query: str | None = None,
         offset: int = 0,
         limit: int = 100,
     ):
@@ -102,7 +101,7 @@ class PersonService:
     async def _put_persons_list_to_cache(
         self,
         persons_list: list[Person],
-        query: Optional[str] = None,
+        query: str | None = None,
         offset: int = 0,
         limit: int = 100,
     ):

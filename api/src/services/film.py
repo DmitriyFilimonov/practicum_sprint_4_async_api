@@ -1,6 +1,5 @@
 from functools import lru_cache
 import json
-from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
@@ -22,7 +21,7 @@ class FilmService:
         self.storage = storage
 
     # get_by_id возвращает объект фильма. Он опционален, так как фильм может отсутствовать в базе
-    async def get_by_id(self, film_id: UUID) -> Optional[Film]:
+    async def get_by_id(self, film_id: UUID) -> Film | None:
         film = await self._film_from_cache(film_id)
 
         if not film:
@@ -35,10 +34,10 @@ class FilmService:
 
         return film
 
-    async def _get_film_from_elastic(self, film_id: UUID) -> Optional[Film]:
+    async def _get_film_from_elastic(self, film_id: UUID) -> Film | None:
         return await self.storage.get_by_id(id=str(film_id))
 
-    async def _film_from_cache(self, film_id: UUID) -> Optional[Film]:
+    async def _film_from_cache(self, film_id: UUID) -> Film | None:
         film = await self.cache.get_single_value(key=str(film_id), model=Film)
 
         return film
@@ -50,13 +49,13 @@ class FilmService:
 
     async def get_films_list(
         self,
-        genres: Optional[list[UUID]] = None,
-        exclude_id: Optional[str] = None,
-        sort: Optional[FilmSortableFields] = None,
+        genres: list[UUID] | None = None,
+        exclude_id: str | None = None,
+        sort: FilmSortableFields | None = None,
         offset: int = 0,
         limit: int = 100,
-        query: Optional[str] = None,
-        id: Optional[list[str]] = None,
+        query: str | None = None,
+        id: list[str] | None = None,
     ) -> list[Film]:
         films_list_cache = await self._get_films_list_slice_from_cache(
             genres=genres,
@@ -99,13 +98,13 @@ class FilmService:
 
     async def _get_films_list_from_elastic(
         self,
-        genres: Optional[list[UUID]] = None,
-        query: Optional[str] = None,
-        exclude_id: Optional[str] = None,
-        sort: Optional[FilmSortableFields] = None,
+        genres: list[UUID] | None = None,
+        query: str | None = None,
+        exclude_id: str | None = None,
+        sort: FilmSortableFields | None = None,
         offset: int = 0,
         limit: int = 100,
-        id: Optional[list[str]] = None,
+        id: list[str] | None = None,
     ):
         return await self.storage.get_list(
             sort=sort,
@@ -120,13 +119,13 @@ class FilmService:
     async def _put_films_list_slice_to_cache(
         self,
         films_list: list[Film],
-        genres: Optional[list[UUID]] = None,
-        exclude_id: Optional[str] = None,
-        sort: Optional[str] = None,
+        genres: list[UUID] | None = None,
+        exclude_id: str | None = None,
+        sort: str | None = None,
         offset: int = 0,
         limit: int = 100,
-        query: Optional[str] = None,
-        id: Optional[list[str]] = None,
+        query: str | None = None,
+        id: list[str] | None = None,
     ):
         await self.cache.set_value_by_dict_key(
             key_raw={
@@ -144,13 +143,13 @@ class FilmService:
 
     async def _get_films_list_slice_from_cache(
         self,
-        genres: Optional[list[UUID]] = None,
-        exclude_id: Optional[str] = None,
-        sort: Optional[FilmSortableFields] = None,
+        genres: list[UUID] | None = None,
+        exclude_id: str | None = None,
+        sort: FilmSortableFields | None = None,
         offset: int = 0,
         limit: int = 100,
-        query: Optional[str] = None,
-        id: Optional[list[str]] = None,
+        query: str | None = None,
+        id: list[str] | None = None,
     ):
         films_list_slice = await self.cache.get_list_from_cache(
             key_raw={

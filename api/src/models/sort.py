@@ -1,9 +1,8 @@
-from typing import Optional
 from enum import Enum
 from src.models.film import FilmSortableFields
 
 
-def map_sorting(sort: Optional[FilmSortableFields], sortable_fields: Enum):
+def map_sorting(sort: FilmSortableFields | None, sortable_fields: Enum):
     if not sort:
         return None
 

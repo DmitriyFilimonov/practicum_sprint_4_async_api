@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
@@ -23,13 +22,13 @@ class AbstractFilmStorage(ABC):
     @abstractmethod
     async def get_list(
         self,
-        genres: Optional[list[UUID]] = None,
-        query: Optional[str] = None,
-        exclude_id: Optional[str] = None,
-        sort: Optional[FilmSortableFields] = None,
+        genres: list[UUID] | None = None,
+        query: str | None = None,
+        exclude_id: str | None = None,
+        sort: FilmSortableFields | None = None,
         offset: int = 0,
         limit: int = 100,
-        id: Optional[list[str]] = None,
+        id: list[str] | None = None,
     ) -> list[Film] | None: ...
 
 
