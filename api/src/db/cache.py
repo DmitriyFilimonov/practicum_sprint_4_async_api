@@ -1,27 +1,21 @@
-import abc
 import json
 from src.core import config
-from typing import Any, Type, TypeVar, List
+from typing import Any, Protocol, Type, TypeVar, List
 from redis.asyncio import Redis
 
 
 # единый интерфейс базы данных с кешем
-class CacheDB(abc.ABC):
-    @abc.abstractmethod
+class CacheDB(Protocol):
     async def instantiate_cache_db(self): ...
 
-    @abc.abstractmethod
     async def set_value(
         self, key: str, value: Any, expire_time: int | None
     ) -> None: ...
 
-    @abc.abstractmethod
     async def get_value(self, key: str) -> Any | None: ...
 
-    @abc.abstractmethod
     def create_key(self, key_raw: dict[str, Any]) -> str: ...
 
-    @abc.abstractmethod
     async def close(self): ...
 
 

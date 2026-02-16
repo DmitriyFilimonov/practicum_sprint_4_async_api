@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from typing import Protocol
 
 from fastapi import Depends
 
@@ -11,11 +11,9 @@ from src.models.person import Person
 PERSONS_ES_INDEX = "persons"
 
 
-class AbstractPersonStorage(ABC):
-    @abstractmethod
+class AbstractPersonStorage(Protocol):
     async def get_by_id(self, id: str) -> Person | None: ...
 
-    @abstractmethod
     async def get_list(
         self, query: str | None = None, offset: int = 0, limit: int = 100
     ) -> list[Person] | None: ...
