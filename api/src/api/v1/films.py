@@ -17,13 +17,13 @@ class FilmListResponseItem(BaseModel):
 
 
 @router.get("/search", response_model=list[FilmListResponseItem])
-async def similar_films(
+async def search_films(
     query: str = None,
     pagination: Pagination = Depends(get_pagination),
     film_service: FilmService = Depends(get_film_service),
 ):
 
-    similar_films = await film_service.get_films_list(
+    films_search_result = await film_service.get_films_list(
         offset=pagination.offset, limit=pagination.limit, query=query
     )
 
@@ -33,7 +33,7 @@ async def similar_films(
             title=f.title,
             imdb_rating=f.imdb_rating,
         )
-        for f in similar_films
+        for f in films_search_result
     ]
 
 
@@ -83,7 +83,7 @@ async def film_details(
 
 
 @router.get("/{film_id}/similar", response_model=list[FilmListResponseItem])
-async def similar_films(
+async def search_films(
     film_id: UUID,
     sort: Optional[str] = Query(
         default=None,
