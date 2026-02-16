@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from typing import Protocol
 from uuid import UUID
 
 from fastapi import Depends
@@ -15,11 +15,9 @@ from src.models.film import Film, FilmDocSortableFields, FilmSortableFields
 MOVIES_ES_INDEX = "movies"
 
 
-class AbstractFilmStorage(ABC):
-    @abstractmethod
+class AbstractFilmStorage(Protocol):
     async def get_by_id(self, id: str) -> Film | None: ...
 
-    @abstractmethod
     async def get_list(
         self,
         genres: list[UUID] | None = None,

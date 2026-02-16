@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from typing import Protocol
 
 
 from fastapi import Depends
@@ -13,11 +13,9 @@ from src.models.genre import Genre
 GENRES_ES_INDEX = "genres"
 
 
-class AbstractGenreStorage(ABC):
-    @abstractmethod
+class AbstractGenreStorage(Protocol):
     async def get_by_id(self, id: str) -> Genre | None: ...
 
-    @abstractmethod
     async def get_list(
         self, offset: int = 0, limit: int = 100
     ) -> list[Genre] | None: ...
