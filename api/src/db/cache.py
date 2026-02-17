@@ -36,8 +36,8 @@ class RedisCahce(CacheDB):
     async def set_value(self, key: str, value: Any, expire_time: int | None) -> None:
         await self.redis.set(key, value, expire_time)
 
-    def get_value(self, key: str) -> str | None:
-        value = self.redis.get(key)
+    async def get_value(self, key: str) -> str | None:
+        value = await self.redis.get(key)
 
         if value is None:
             return None
