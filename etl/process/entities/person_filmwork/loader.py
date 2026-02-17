@@ -1,14 +1,13 @@
-from logging import info
 from datetime import datetime
+from logging import info
 from typing import Generator
 
-from process.es_client import create_persons_scheme, send_bulk
-from state.state import State
 from process.entities.models import (
     PersonFilmworkESDoc,
     PersonFilmworkESDocRaw,
 )
-
+from process.es_client import create_persons_scheme, send_bulk
+from state.state import State
 from utils import coroutine
 
 
@@ -32,7 +31,8 @@ def load_persons(
         )
 
         info(
-            f"info: {state_key} актуализированы до {str(last_modified)}. Обновлений: {len(persons)}"
+            f'''info: {state_key} актуализированы до {str(last_modified)}.
+            Обновлений: {len(persons)}'''
         )
 
         state.set_state(key=state_key, value=last_modified)

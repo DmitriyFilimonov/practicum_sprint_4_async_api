@@ -1,18 +1,17 @@
 import json
+from functools import lru_cache
 from uuid import UUID
 
+from fastapi import Depends
+from src.db.cache import Cache, get_cache
 from src.db.domain_storages.elastic.person import (
     AbstractPersonStorage,
     get_person_storage,
 )
-
-from src.db.cache import Cache, get_cache
-from fastapi import Depends
-from functools import lru_cache
-
 from src.models.person import Person
 
 PERSON_CACHE_EXPIRE_IN_SECONDS = 60 * 5
+
 
 PERSONS_ES_INDEX = "persons"
 

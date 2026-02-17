@@ -1,7 +1,9 @@
-from tests.functional.settings import settings
-from typing import Any, Awaitable, Callable
-import pytest
 import uuid
+from typing import Any, Awaitable, Callable
+
+import pytest
+
+from tests.functional.settings import settings
 
 
 @pytest.mark.parametrize(

@@ -1,14 +1,15 @@
 import json
 from functools import lru_cache
 from uuid import UUID
-from fastapi import Depends
 
-from src.db.domain_storages.elastic.genre import AbstractGenreStorage, get_genre_storage
+from fastapi import Depends
 from src.db.cache import Cache, get_cache
+from src.db.domain_storages.elastic.genre import AbstractGenreStorage, get_genre_storage
 from src.models.genre import Genre
 
-
 GANRES_CACHE_EXPIRE_IN_SECONDS = 60 * 20
+
+
 GENRES_ES_INDEX = "genres"
 
 
@@ -70,7 +71,8 @@ class GenreService:
         self, genres_list: list[Genre], offset: int = 0, limit: int = 100
     ):
 
-        data = json.dumps([genre.dict() for genre in genres_list], sort_keys=True)
+        data = json.dumps([genre.dict()
+                          for genre in genres_list], sort_keys=True)
 
         await self.cache.set_value_by_dict_key(
             key_raw={

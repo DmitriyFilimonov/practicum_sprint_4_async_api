@@ -1,13 +1,11 @@
+import logging
 from time import sleep
 
-
-from process.entities.person_filmwork.etl import create_person_film_work_etl
-from process.entities.genre_filmwork.etl import create_genre_film_work_etl
-from utils import backoff
 from process.entities.filmwork.etl import create_movies_etl
+from process.entities.genre_filmwork.etl import create_genre_film_work_etl
+from process.entities.person_filmwork.etl import create_person_film_work_etl
 from state.state import RemoteStorage, State
-
-import logging
+from utils import backoff
 
 logging.basicConfig(
     level=logging.INFO,

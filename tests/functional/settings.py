@@ -2,8 +2,8 @@ from pydantic_settings import BaseSettings
 
 from tests.functional.es_mappings import (
     ELASTIC_FILMS_INDEX_MAPPING,
-    ELASTIC_PERSONS_INDEX_MAPPING,
     ELASTIC_GENRES_INDEX_MAPPING,
+    ELASTIC_PERSONS_INDEX_MAPPING,
 )
 
 

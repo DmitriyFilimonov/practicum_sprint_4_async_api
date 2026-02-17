@@ -1,6 +1,7 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+
 def parse_db_date(value: str) -> datetime:
     if "." in value:
         base, microseconds = value.split(".")

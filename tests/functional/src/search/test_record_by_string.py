@@ -1,10 +1,8 @@
-from tests.functional.settings import settings
 from typing import Any, Awaitable, Callable
+
 import pytest
 
-
-#  Название теста должно начинаться со слова `test_`
-#  Любой тест с асинхронными вызовами нужно оборачивать декоратором `pytest.mark.asyncio`, который следит за запуском и работой цикла событий.
+from tests.functional.settings import settings
 
 
 @pytest.mark.parametrize(
@@ -26,12 +24,18 @@ async def test_record_by_string(
     # 1. Генерируем данные для ES
     elastic_data_1 = generate_test_films(
         count=1,
-        description="Lorem ipsum dolor sit amet consectetur, adipisicing elit. Maxime porro ipsa quos voluptatum corrupti vero cum in, _ reiciendis repellendus veniam, laudantium voluptatem iste. Adipisci asperiores eius repellendus id.",
+        description='''Lorem ipsum dolor sit amet consectetur, adipisicing elit.
+        Maxime porro ipsa quos voluptatum corrupti vero cum in,
+        _ reiciendis repellendus veniam, laudantium voluptatem iste.
+        Adipisci asperiores eius repellendus id.''',
     )
 
     elastic_data_2 = generate_test_films(
         count=1,
-        description="Lorem ipsum _ sit amet consectetur, adipisicing elit. Maxime porro ipsa quos voluptatum corrupti vero cum in, molestias placeat reiciendis repellendus veniam, laudantium voluptatem iste. Adipisci asperiores eius repellendus id.",
+        description='''Lorem ipsum _ sit amet consectetur, adipisicing elit.
+        Maxime porro ipsa quos voluptatum corrupti vero cum in,
+        molestias placeat reiciendis repellendus veniam, laudantium voluptatem iste.
+        Adipisci asperiores eius repellendus id.''',
     )
 
     elastic_data = elastic_data_1 + elastic_data_2

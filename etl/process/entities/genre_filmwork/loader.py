@@ -1,14 +1,13 @@
-from logging import info
 from datetime import datetime
+from logging import info
 from typing import Generator
 
-from process.es_client import create_genres_scheme, send_bulk
-from state.state import State
 from process.entities.models import (
     GenreFilmworkESDoc,
     GenreFilmworkESDocRaw,
 )
-
+from process.es_client import create_genres_scheme, send_bulk
+from state.state import State
 from utils import coroutine
 
 
@@ -36,7 +35,8 @@ def load_genres(
         )
 
         info(
-            f"info: {state_key} актуализированы до {str(last_modified)}. Обновлений: {len(genres)}"
+            f'''info: {state_key} актуализированы до {str(last_modified)}.
+            Обновлений: {len(genres)}'''
         )
 
         state.set_state(key=state_key, value=last_modified)

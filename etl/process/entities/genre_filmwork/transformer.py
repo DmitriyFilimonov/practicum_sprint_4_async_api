@@ -4,7 +4,6 @@ from process.entities.models import (
     GenreFilmwork,
     GenreFilmworkESDocRaw,
 )
-
 from utils import coroutine
 
 

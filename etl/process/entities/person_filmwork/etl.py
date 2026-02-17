@@ -1,10 +1,9 @@
-from process.entities.person_filmwork.extractor import extract_persons_by_modified
-from process.entities.person_filmwork.transformer import transform_persons
 from process.entities.person_filmwork.constants import PERSONS_FILM_WORK_STATE_KEY
+from process.entities.person_filmwork.extractor import extract_persons_by_modified
 from process.entities.person_filmwork.loader import load_persons
-from utils import backoff
-
+from process.entities.person_filmwork.transformer import transform_persons
 from state.state import State
+from utils import backoff
 
 
 def create_person_film_work_etl(state: State):

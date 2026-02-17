@@ -1,8 +1,6 @@
 from typing import Any, Dict, Generic, List, TypeVar
 
-
 from src.db.elastic import ElasticWrapper
-
 
 T = TypeVar("T")
 

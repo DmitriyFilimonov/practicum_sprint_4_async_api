@@ -2,15 +2,10 @@ from typing import Protocol
 from uuid import UUID
 
 from fastapi import Depends
-
-
-from src.db.elastic import ElasticWrapper, get_elastic
 from src.db.domain_storages.elastic.common import CommonStorage
-from src.models.sort import map_sorting
-
-
+from src.db.elastic import ElasticWrapper, get_elastic
 from src.models.film import Film, FilmDocSortableFields, FilmSortableFields
-
+from src.models.sort import map_sorting
 
 MOVIES_ES_INDEX = "movies"
 
