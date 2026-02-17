@@ -1,22 +1,19 @@
-from time import sleep
 
-from utils import backoff
-from process.entities.genre_filmwork.extractor import extract_genres_by_modified
-from process.entities.person.extractor import extract_movies_by_person_modified
-from process.entities.person.constants import PERSONS_STATE_KEY
-from process.entities.genre.constants import GENRES_STATE_KEY
-from process.entities.genre.extractor import extract_movies_by_genre_modified
 from process.entities.filmwork.constants import MOVIES_STATE_KEY
-from state.state import State
 from process.entities.filmwork.extractor import extract_movies_by_modified
+from process.entities.filmwork.loader import load_movies
 from process.entities.filmwork.transformer import (
     filmwork_modified_extractor,
     genre_modified_extractor,
     person_modified_extractor,
     transform_movies,
 )
-from process.entities.filmwork.loader import load_movies
-from process.entities.filmwork.constants import MOVIES_STATE_KEY
+from process.entities.genre.constants import GENRES_STATE_KEY
+from process.entities.genre.extractor import extract_movies_by_genre_modified
+from process.entities.person.constants import PERSONS_STATE_KEY
+from process.entities.person.extractor import extract_movies_by_person_modified
+from state.state import State
+from utils import backoff
 
 
 @backoff(border_sleep_time=60)

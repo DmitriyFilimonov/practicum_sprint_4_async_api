@@ -1,7 +1,8 @@
 import json
-from src.core import config
-from typing import Any, Protocol, Type, TypeVar, List
+from typing import Any, List, Protocol, Type, TypeVar
+
 from redis.asyncio import Redis
+from src.core import config
 
 
 # единый интерфейс базы данных с кешем
@@ -23,7 +24,8 @@ class CacheDB(Protocol):
 class RedisCahce(CacheDB):
     def __init__(self) -> None:
         self.redis = Redis(
-            host=config.settings.redis_host, port=int(config.settings.redis_port)
+            host=config.settings.redis_host, port=int(
+                config.settings.redis_port)
         )
 
     async def instantiate_cache_db(self):
@@ -34,13 +36,15 @@ class RedisCahce(CacheDB):
     async def set_value(self, key: str, value: Any, expire_time: int | None) -> None:
         await self.redis.set(key, value, expire_time)
 
-    async def get_value(self, key: str) -> str | None:
+    def get_value(self, key: str) -> str | None:
+        value = self.redis.get(key)
+
+        if value is None:
+            return None
+
         try:
-            value = await self.redis.get(key)
-
             return value.decode()
-
-        except:
+        except UnicodeDecodeError:
             return None
 
     def create_key(self, key_raw: dict[str, Any]):
@@ -102,7 +106,7 @@ class Cache:
         await self.cache_db.close()
 
 
-cache: Cache | None
+cache: Cache | None = None
 
 
 def get_cache():

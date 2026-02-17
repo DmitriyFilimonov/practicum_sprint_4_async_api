@@ -1,11 +1,10 @@
-from logging import info
 from datetime import datetime
+from logging import info
 from typing import Generator
 
+from process.entities.models import FilmWorkESDoc, FilmWorkESDocRaw
 from process.es_client import create_movies_scheme, send_bulk
 from state.state import State
-from process.entities.models import FilmWorkESDoc, FilmWorkESDocRaw
-
 from utils import coroutine
 
 
@@ -41,7 +40,8 @@ def load_movies(
         )
 
         info(
-            f"info: {state_key} актуализированы до {str(last_modified)}. Обновлений: {len(filmworks)}"
+            f'''info: {state_key} актуализированы до {str(last_modified)}.
+            Обновлений: {len(filmworks)}'''
         )
 
         state.set_state(key=state_key, value=last_modified)

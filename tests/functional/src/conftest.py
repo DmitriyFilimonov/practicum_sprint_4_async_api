@@ -1,13 +1,11 @@
-from tests.functional.settings import settings
+import uuid
+
 import aiohttp
+import pytest_asyncio
+from elasticsearch import AsyncElasticsearch
 from elasticsearch.helpers import async_bulk
 
-from elasticsearch import AsyncElasticsearch
-import pytest
-import pytest_asyncio
-
-
-import uuid
+from tests.functional.settings import settings
 
 
 @pytest_asyncio.fixture(name="generate_test_films")
@@ -58,7 +56,6 @@ def make_get_request(http_client: aiohttp.ClientSession):
 
         async with http_client.get(url, params=query_data) as response:
             body = await response.json()
-            headers = response.headers
             status = response.status
 
         return status, body

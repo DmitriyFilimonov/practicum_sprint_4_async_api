@@ -1,12 +1,11 @@
-from logging import error, warning
-
 from functools import wraps
+from logging import error, warning
 from time import sleep
 from typing import Generator
-import redis
-import requests
 
 import psycopg
+import redis
+import requests
 
 
 def coroutine(func):
@@ -52,12 +51,15 @@ def backoff(start_sleep_time=1, factor=2, border_sleep_time=10):
                         )
                         raise
 
-                    delay = min(start_sleep_time * (factor**attempt), border_sleep_time)
+                    delay = min(start_sleep_time *
+                                (factor**attempt), border_sleep_time)
                     attempt += 1
 
                     if delay >= border_sleep_time:
                         error(
-                            f'Не удается выполнить "{inner.__name__}". Превышено максимальное время ожидания: {border_sleep_time} сек.',
+                            f'''Не удается выполнить "{inner.__name__}".
+                            Превышено максимальное время ожидания:
+                            {border_sleep_time} сек.''',
                             f"\nВыполнено попыток: {attempt}.",
                         )
 

@@ -1,9 +1,9 @@
-from utils import backoff
-from process.entities.genre_filmwork.loader import load_genres
 from process.entities.genre_filmwork.contants import GENRES_FILM_WORK_STATE_KEY
-from process.entities.genre_filmwork.transformer import transform_genres
 from process.entities.genre_filmwork.extractor import extract_genres_by_modified
+from process.entities.genre_filmwork.loader import load_genres
+from process.entities.genre_filmwork.transformer import transform_genres
 from state.state import State
+from utils import backoff
 
 
 def create_genre_film_work_etl(state: State):

@@ -1,11 +1,11 @@
-from logging import info
-import psycopg
-from process.entities.models import PersonFilmwork, PersonFilmworkFilm
-from psycopg.rows import class_row
-from settings import settings
 from datetime import datetime
+from logging import info
 from typing import Generator
 
+import psycopg
+from process.entities.models import PersonFilmwork
+from psycopg.rows import class_row
+from settings import settings
 from utils import coroutine
 
 

@@ -1,11 +1,11 @@
-import backoff
-from logging import info
-from datetime import datetime, timedelta
+import logging
 import random
 import uuid
-import psycopg
+from datetime import datetime, timedelta
+from logging import info
 
-import logging
+import backoff
+import psycopg
 
 logging.basicConfig(
     level=logging.INFO,

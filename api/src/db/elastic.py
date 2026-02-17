@@ -1,4 +1,5 @@
 from typing import Any, Dict, TypeVar
+
 from elasticsearch import AsyncElasticsearch, NotFoundError
 
 T = TypeVar("T")

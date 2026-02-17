@@ -1,6 +1,7 @@
-import time
-from elasticsearch import Elasticsearch
 import os
+import time
+
+from elasticsearch import Elasticsearch
 
 ELASTIC_HOST = os.getenv("ELASTIC_HOST")
 ELASTIC_PORT = os.getenv("ELASTIC_PORT")

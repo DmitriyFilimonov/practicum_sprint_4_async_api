@@ -1,12 +1,9 @@
 from typing import Protocol
 
 from fastapi import Depends
-
-
-from src.db.elastic import ElasticWrapper, get_elastic
 from src.db.domain_storages.elastic.common import CommonStorage
+from src.db.elastic import ElasticWrapper, get_elastic
 from src.models.person import Person
-
 
 PERSONS_ES_INDEX = "persons"
 

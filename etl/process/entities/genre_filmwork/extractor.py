@@ -1,11 +1,11 @@
+from datetime import datetime
 from logging import info
+from typing import Generator
+
 import psycopg
 from process.entities.models import GenreFilmwork
 from psycopg.rows import class_row
 from settings import settings
-from datetime import datetime
-from typing import Generator
-
 from utils import coroutine
 
 

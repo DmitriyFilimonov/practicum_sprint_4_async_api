@@ -1,7 +1,6 @@
 from logging import config as logging_config
 
 from pydantic_settings import BaseSettings
-
 from src.core.logger import LOGGING
 
 

@@ -1,11 +1,10 @@
-from datetime import datetime
-
 import abc
+from datetime import datetime
 from typing import Any
+
 from redis import Redis
-from utils import backoff
-import settings
 from settings import settings
+from utils import backoff
 
 
 class BaseStorage(abc.ABC):
@@ -24,12 +23,14 @@ class RemoteStorage(BaseStorage):
         self.redis.set(key, value)
 
     def get_value(self, key: str) -> str | None:
+        value = self.redis.get(key)
+
+        if value is None:
+            return None
+
         try:
-            value = self.redis.get(key)
-
             return value.decode()
-
-        except:
+        except UnicodeDecodeError:
             return None
 
 
@@ -45,7 +46,7 @@ class State:
     def get_state(self, state_key: str) -> datetime:
         raw_date_time = self.storage.get_value(state_key)
 
-        if raw_date_time == None:
+        if raw_date_time is None:
             return datetime.min
 
         return datetime.fromisoformat(raw_date_time)

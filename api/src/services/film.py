@@ -1,15 +1,13 @@
-from functools import lru_cache
 import json
+from functools import lru_cache
 from uuid import UUID
 
 from fastapi import Depends
-
+from src.db.cache import Cache, get_cache
 from src.db.domain_storages.elastic.film import (
     AbstractFilmStorage,
     get_film_storage,
 )
-
-from src.db.cache import Cache, get_cache
 from src.models.film import Film, FilmSortableFields
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
@@ -20,7 +18,8 @@ class FilmService:
         self.cache = cache
         self.storage = storage
 
-    # get_by_id возвращает объект фильма. Он опционален, так как фильм может отсутствовать в базе
+    # get_by_id возвращает объект фильма.
+    # Он опционален, так как фильм может отсутствовать в базе
     async def get_by_id(self, film_id: UUID) -> Film | None:
         film = await self._film_from_cache(film_id)
 
@@ -137,7 +136,8 @@ class FilmService:
                 "query": query,
                 "id": id,
             },
-            value=json.dumps([film.dict() for film in films_list], sort_keys=True),
+            value=json.dumps([film.dict()
+                             for film in films_list], sort_keys=True),
             expire_time=FILM_CACHE_EXPIRE_IN_SECONDS,
         )
 

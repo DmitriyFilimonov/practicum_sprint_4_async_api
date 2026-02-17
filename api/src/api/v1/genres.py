@@ -1,12 +1,10 @@
 from http import HTTPStatus
 from uuid import UUID
-from src.api.v1.models import NotFoundRes
-from src.models.pagination import Pagination, get_pagination
-
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-
+from src.api.v1.models import NotFoundRes
+from src.models.pagination import Pagination, get_pagination
 from src.services.genre import GenreService, get_genre_service
 
 router = APIRouter()

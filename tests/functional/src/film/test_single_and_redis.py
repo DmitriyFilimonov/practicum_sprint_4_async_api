@@ -1,11 +1,9 @@
-from tests.functional.settings import settings
-
-from pydantic import BaseModel
-
 from typing import Any, Awaitable, Callable
 
-
 import pytest
+from pydantic import BaseModel
+
+from tests.functional.settings import settings
 
 
 class FilmDetailResponsePerson(BaseModel):

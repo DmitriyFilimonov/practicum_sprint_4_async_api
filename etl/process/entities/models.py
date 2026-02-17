@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
-from zoneinfo import ZoneInfo
 from datetime import datetime
 from uuid import UUID, uuid4
+from zoneinfo import ZoneInfo
 
 from process.parse_db_date import parse_db_date
 

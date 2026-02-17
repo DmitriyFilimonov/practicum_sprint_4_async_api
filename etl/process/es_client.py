@@ -1,11 +1,11 @@
+import json
 from dataclasses import asdict
 from typing import Any
+
 import requests
-import json
+from process.es_scheme import genres_scheme, movies_schema, persons_scheme
 from settings import settings
 from utils import backoff
-
-from process.es_scheme import movies_schema, genres_scheme, persons_scheme
 
 ES_URL = f"http://{settings.es_host}:{settings.es_port}"
 
